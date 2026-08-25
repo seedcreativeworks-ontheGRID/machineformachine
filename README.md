@@ -15,6 +15,10 @@ public/          Static frontend — no build step
   style.css        HUD design system styles
   config.js        Runtime config: where the frontend calls for /api/chat
   app.js           Timer logic, dish tracks, Galley AI chat client
+  audio/
+    how-to-use-script.txt  Narration script — feed to a TTS tool
+    how-to-use.mp3          Drop the generated narration here (not
+                             included — see audio/README.md)
 
 server/          Backend, shared by every hosting path
   index.js          Express server: serves public/ + POST /api/chat
@@ -176,3 +180,9 @@ to generate `public/config.js`), only relevant for the Pages path.
 - Voice input for Galley AI uses the browser's Web Speech API and only
   activates in browsers that support it (falls back to a text-only note
   otherwise).
+- The "🔊 HOW TO USE THIS" button under the title plays a short narration
+  (`public/audio/how-to-use.mp3`) walking through the timer, live tasks
+  ticker, and Galley AI. That file isn't checked in — see
+  `public/audio/README.md` for the script and expected path. Until it's
+  added, the button shows "AUDIO NOT FOUND" and disables itself rather
+  than erroring.

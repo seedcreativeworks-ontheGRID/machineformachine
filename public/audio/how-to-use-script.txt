@@ -1,0 +1,22 @@
+Welcome aboard Galley OS. Here's how this works.
+
+Set your total time frame at the top — how long until serve. Add each dish
+you're cooking below: name, total cook time, ingredients, and your method.
+
+Hit ENGAGE, and the system reverse-schedules everything — it works
+backward from your serve time, so every dish finishes together, no matter
+when it started.
+
+Watch the LIVE TASKS panel up top. It shows exactly what to do right now,
+for every dish, with a live countdown. When a task turns red, it's
+urgent — act on it now.
+
+Each dish card below has its own countdown and ingredients list — tap to
+check off steps as you go.
+
+Stuck mid-cook? Ask Galley AI. Type or tap the mic and ask anything —
+substitutions, fixes, timing — it'll answer fast.
+
+Set your time. Add your dishes. Hit engage. Cook to the clock.
+
+Let's serve on time.
