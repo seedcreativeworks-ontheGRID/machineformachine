@@ -507,39 +507,62 @@ if(SpeechRecognitionCtor){
   });
 }
 
-/* ===== HOW-TO-USE NARRATION ===== */
-const howtoBtn = document.getElementById('howtoBtn');
+/* ===== HOW-TO-USE NARRATION — docked player rail ===== */
+const howtoRail = document.getElementById('howtoRail');
 const howtoAudio = document.getElementById('howtoAudio');
+const howtoToggle = document.getElementById('howtoToggle');
 const howtoIcon = document.getElementById('howtoIcon');
-const howtoLabel = document.getElementById('howtoLabel');
+const howtoSkipback = document.getElementById('howtoSkipback');
+const howtoScrub = document.getElementById('howtoScrub');
+const howtoTime = document.getElementById('howtoTime');
 
-function setHowtoState(icon, label, playing){
-  howtoIcon.textContent = icon;
-  howtoLabel.textContent = label;
-  howtoBtn.classList.toggle('playing', playing);
+const HOWTO_PLAY_ICON = '<polygon points="6,4 20,12 6,20"></polygon>';
+const HOWTO_PAUSE_ICON = '<rect x="5" y="4" width="5" height="16"></rect><rect x="14" y="4" width="5" height="16"></rect>';
+
+function fmtHowto(s){
+  s = Math.max(0, Math.floor(s || 0));
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
 }
 
-howtoBtn.addEventListener('click', ()=>{
+function setHowtoDisabled(){
+  howtoRail.classList.add('disabled');
+  howtoRail.classList.remove('playing');
+  howtoToggle.disabled = true;
+  howtoSkipback.disabled = true;
+  howtoScrub.disabled = true;
+}
+
+howtoToggle.addEventListener('click', ()=>{
   if(howtoAudio.paused){
-    howtoAudio.play().catch(()=>{
-      setHowtoState('⚠', 'AUDIO UNAVAILABLE', false);
-      howtoBtn.disabled = true;
-    });
+    howtoAudio.play().catch(setHowtoDisabled);
   } else {
     howtoAudio.pause();
-    howtoAudio.currentTime = 0;
   }
 });
-howtoAudio.addEventListener('play', ()=> setHowtoState('⏸', 'PLAYING — TAP TO STOP', true));
+howtoSkipback.addEventListener('click', ()=>{
+  howtoAudio.currentTime = Math.max(0, howtoAudio.currentTime - 10);
+});
+howtoScrub.addEventListener('input', ()=>{
+  if(howtoAudio.duration) howtoAudio.currentTime = (howtoScrub.value/100) * howtoAudio.duration;
+});
+
+howtoAudio.addEventListener('play', ()=>{
+  howtoRail.classList.add('playing');
+  howtoIcon.innerHTML = HOWTO_PAUSE_ICON;
+});
 howtoAudio.addEventListener('pause', ()=>{
-  if(howtoBtn.disabled) return; // don't clobber the "AUDIO NOT FOUND" state
-  setHowtoState('🔊', 'HOW TO USE THIS', false);
+  howtoRail.classList.remove('playing');
+  howtoIcon.innerHTML = HOWTO_PLAY_ICON;
 });
-howtoAudio.addEventListener('ended', ()=> setHowtoState('🔊', 'HOW TO USE THIS', false));
-howtoAudio.addEventListener('error', ()=>{
-  setHowtoState('⚠', 'AUDIO NOT FOUND', false);
-  howtoBtn.disabled = true;
+howtoAudio.addEventListener('ended', ()=>{
+  howtoScrub.value = 0;
+  howtoTime.textContent = '0:00';
 });
+howtoAudio.addEventListener('timeupdate', ()=>{
+  howtoTime.textContent = fmtHowto(howtoAudio.currentTime);
+  if(howtoAudio.duration) howtoScrub.value = (howtoAudio.currentTime / howtoAudio.duration) * 100;
+});
+howtoAudio.addEventListener('error', setHowtoDisabled);
 
 renderTracks();
 document.getElementById('masterClock').textContent = fmt(totalSeconds);

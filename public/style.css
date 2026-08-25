@@ -151,42 +151,106 @@
     text-shadow: 0 0 14px rgba(47,216,255,0.5);
   }
 
-  /* HOW-TO-USE NARRATION BUTTON */
-  .howto-btn{
+  /* HOW-TO-USE NARRATION — docked player rail */
+  .howto-rail{
     display:flex;
     align-items:center;
-    justify-content:center;
-    gap:8px;
+    gap:12px;
     width:100%;
-    background: rgba(47,216,255,0.08);
     border: 1px solid var(--cyan-dim);
+    background: rgba(47,216,255,0.07);
     border-radius: 8px;
-    color: var(--cyan);
-    font-family:'Share Tech Mono', monospace;
-    font-size:12px;
-    font-weight:700;
-    letter-spacing:0.14em;
-    padding:11px 14px;
+    padding: 10px 14px;
     margin-bottom:12px;
-    cursor:pointer;
-    transition: background .2s, border-color .2s, box-shadow .2s;
+    transition: border-color .25s, background .25s;
   }
-  .howto-btn:hover{
-    background: rgba(47,216,255,0.16);
-    border-color: var(--cyan);
-    box-shadow: 0 0 12px rgba(47,216,255,0.3);
-  }
-  .howto-btn .howto-icon{ font-size:14px; flex-shrink:0; }
-  .howto-btn.playing{
+  .howto-rail.playing{
     border-color: var(--active);
-    background: rgba(255,176,32,0.12);
-    color: var(--active);
+    background: rgba(255,176,32,0.1);
     animation: pulseglow 1.6s ease-in-out infinite;
   }
-  .howto-btn:disabled{
-    opacity:0.45;
-    cursor:not-allowed;
-    animation:none;
+  .howto-rail.disabled{ opacity:0.45; }
+
+  .howto-badge{
+    width:36px; height:36px;
+    border-radius:50%;
+    flex-shrink:0;
+    background:none;
+    border:2px solid var(--standby);
+    color: var(--standby);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition: border-color .25s, color .25s, box-shadow .25s;
+  }
+  .howto-badge svg{ width:13px; height:13px; margin-left:1px; }
+  .howto-rail.playing .howto-badge{
+    border-color: var(--active);
+    color: var(--active);
+    box-shadow: 0 0 12px rgba(255,176,32,0.45);
+  }
+  .howto-rail.disabled .howto-badge{ cursor:not-allowed; }
+
+  .howto-mid{ flex:1; min-width:0; }
+  .howto-label{
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    color: var(--ink);
+    margin-bottom:6px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .howto-scrub{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:4px;
+    background: var(--panel-line);
+    border-radius:2px;
+    outline:none;
+    cursor:pointer;
+    display:block;
+  }
+  .howto-scrub::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:12px; height:12px;
+    border-radius:50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px rgba(47,216,255,0.7);
+    margin-top:-4px;
+    cursor:pointer;
+  }
+  .howto-scrub::-moz-range-thumb{
+    width:12px; height:12px; border:none; border-radius:50%;
+    background: var(--cyan); box-shadow: 0 0 8px rgba(47,216,255,0.7); cursor:pointer;
+  }
+  .howto-scrub::-webkit-slider-runnable-track{ height:4px; border-radius:2px; }
+  .howto-scrub::-moz-range-track{ height:4px; border-radius:2px; background: var(--panel-line); }
+  .howto-scrub:disabled{ cursor:not-allowed; }
+
+  .howto-skipback{
+    width:22px; height:22px;
+    flex-shrink:0;
+    background:none;
+    border:none;
+    color: var(--dim);
+    cursor:pointer;
+    padding:0;
+    display:flex; align-items:center; justify-content:center;
+    transition: color .25s;
+  }
+  .howto-rail.playing .howto-skipback{ color: var(--standby); }
+  .howto-rail.disabled .howto-skipback{ cursor:not-allowed; }
+
+  .howto-time{
+    font-family:'Share Tech Mono', monospace;
+    font-size:10.5px;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+    flex-shrink:0;
+    min-width:28px;
+    text-align:right;
   }
 
   /* LIVE TICKER PANEL */

@@ -16,9 +16,8 @@ public/          Static frontend — no build step
   config.js        Runtime config: where the frontend calls for /api/chat
   app.js           Timer logic, dish tracks, Galley AI chat client
   audio/
-    how-to-use-script.txt  Narration script — feed to a TTS tool
-    how-to-use.mp3          Drop the generated narration here (not
-                             included — see audio/README.md)
+    how-to-use-script.txt  The narration script (for reference/re-recording)
+    how-to-use.mp3          The narration audio the player rail plays
 
 server/          Backend, shared by every hosting path
   index.js          Express server: serves public/ + POST /api/chat
@@ -180,9 +179,11 @@ to generate `public/config.js`), only relevant for the Pages path.
 - Voice input for Galley AI uses the browser's Web Speech API and only
   activates in browsers that support it (falls back to a text-only note
   otherwise).
-- The "🔊 HOW TO USE THIS" button under the title plays a short narration
-  (`public/audio/how-to-use.mp3`) walking through the timer, live tasks
-  ticker, and Galley AI. That file isn't checked in — see
-  `public/audio/README.md` for the script and expected path. Until it's
-  added, the button shows "AUDIO NOT FOUND" and disables itself rather
-  than erroring.
+- A docked player rail under the title ("HOW TO USE THIS · 60S BRIEFING")
+  plays `public/audio/how-to-use.mp3`, a short narration walking through
+  the timer, live tasks ticker, and Galley AI — full transport controls
+  (play/pause, skip back 10s, a draggable scrub track, elapsed time). The
+  badge and border echo the app's own standby-cyan / active-gold state
+  language, same as the dish tracks below it. If the audio file is ever
+  removed, the rail disables itself gracefully instead of erroring — see
+  `public/audio/README.md` for the script this narration reads.

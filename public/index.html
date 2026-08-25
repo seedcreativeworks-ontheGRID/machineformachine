@@ -19,11 +19,20 @@
     </div>
     <div class="title">MULTI-DISH IGNITION SEQUENCER</div>
 
-    <button class="howto-btn hud-panel" id="howtoBtn" type="button">
-      <span class="howto-icon" id="howtoIcon">🔊</span>
-      <span id="howtoLabel">HOW TO USE THIS</span>
-    </button>
-    <audio id="howtoAudio" preload="none" src="audio/how-to-use.mp3"></audio>
+    <div class="howto-rail hud-panel" id="howtoRail">
+      <button class="howto-badge" id="howtoToggle" type="button" title="Play how-to-use briefing">
+        <svg id="howtoIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"></polygon></svg>
+      </button>
+      <div class="howto-mid">
+        <div class="howto-label">HOW TO USE THIS · 60S BRIEFING</div>
+        <input type="range" class="howto-scrub" id="howtoScrub" min="0" max="100" value="0" step="0.1">
+      </div>
+      <button class="howto-skipback" id="howtoSkipback" type="button" title="Back 10 seconds">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+      </button>
+      <span class="howto-time" id="howtoTime">0:00</span>
+    </div>
+    <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3"></audio>
 
     <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
       <button class="ticker-label" id="tickerToggle" type="button">
