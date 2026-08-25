@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7dcd58ead585bba4660ab48ad3cdea450e0b899b">
-<script src="config.js?v=7dcd58ead585bba4660ab48ad3cdea450e0b899b"></script>
+<link rel="stylesheet" href="style.css?v=ea7d554ead3507c296754b32669a9548a49bf759">
+<script src="config.js?v=ea7d554ead3507c296754b32669a9548a49bf759"></script>
 </head>
 <body>
 <div class="wrap" id="mainView">
@@ -32,7 +32,26 @@
       </button>
       <span class="howto-time" id="howtoTime">0:00</span>
     </div>
-    <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3?v=7dcd58ead585bba4660ab48ad3cdea450e0b899b"></audio>
+    <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3?v=ea7d554ead3507c296754b32669a9548a49bf759"></audio>
+
+    <div class="panel ai-panel hud-panel">
+      <div class="panel-label">GALLEY AI — ASK ABOUT INGREDIENTS, SUBS, ANYTHING</div>
+      <div class="ai-log" id="aiLog">
+        <div class="ai-msg ai-msg-bot">Ask me anything mid-cook — substitutions, what to do with an ingredient, how to fix a step. Keep it quick.</div>
+      </div>
+      <div class="ai-input-row">
+        <button class="ai-mic-btn" id="aiMicBtn" type="button" title="Speak your question">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </button>
+        <input type="text" id="aiInput" placeholder="e.g. my chicken looks undercooked, what do I do?">
+        <button class="ai-send-btn" id="aiSendBtn" type="button">SEND</button>
+      </div>
+    </div>
 
     <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
       <button class="ticker-label" id="tickerToggle" type="button">
@@ -75,25 +94,6 @@
         <button class="btn btn-engage" id="engageBtn">ENGAGE</button>
         <button class="btn btn-reset" id="resetBtn">RESET</button>
       </div>
-    </div>
-  </div>
-
-  <div class="panel ai-panel hud-panel">
-    <div class="panel-label">GALLEY AI — ASK ABOUT INGREDIENTS, SUBS, ANYTHING</div>
-    <div class="ai-log" id="aiLog">
-      <div class="ai-msg ai-msg-bot">Ask me anything mid-cook — substitutions, what to do with an ingredient, how to fix a step. Keep it quick.</div>
-    </div>
-    <div class="ai-input-row">
-      <button class="ai-mic-btn" id="aiMicBtn" type="button" title="Speak your question">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-          <line x1="12" y1="19" x2="12" y2="23"></line>
-          <line x1="8" y1="23" x2="16" y2="23"></line>
-        </svg>
-      </button>
-      <input type="text" id="aiInput" placeholder="e.g. my chicken looks undercooked, what do I do?">
-      <button class="ai-send-btn" id="aiSendBtn" type="button">SEND</button>
     </div>
   </div>
 
@@ -270,6 +270,6 @@
 
 </div>
 
-<script src="app.js?v=7dcd58ead585bba4660ab48ad3cdea450e0b899b" defer></script>
+<script src="app.js?v=ea7d554ead3507c296754b32669a9548a49bf759" defer></script>
 </body>
 </html>
