@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/end-to-end-repo-setup-komc9y]
     paths:
       - "public/**"
       - ".github/workflows/deploy-pages.yml"
