@@ -1,5 +1,13 @@
 name: Deploy to GitHub Pages
 
+# Publishes public/ to the gh-pages branch, which GitHub Pages is
+# configured to serve from directly (Settings -> Pages -> Source:
+# "Deploy from a branch" -> Branch: gh-pages, Folder: / (root)).
+#
+# The gh-pages branch is created automatically on first run — nothing to
+# set up on that branch ahead of time. After the first successful run,
+# go select it in Settings -> Pages if it isn't already selected there.
+
 on:
   push:
     branches: [main, claude/end-to-end-repo-setup-komc9y]
@@ -9,11 +17,8 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Only one Pages deploy at a time; a newer push cancels an in-flight one.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -21,9 +26,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,14 +43,8 @@ jobs:
           };
           EOF
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload public/ as the Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish public/ to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: public
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public

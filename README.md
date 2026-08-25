@@ -118,12 +118,17 @@ ships `api/chat.js` for it and it's free for a project this size. Steps:
    `.github/workflows/deploy-pages.yml` writes this into `public/config.js`
    at deploy time, so the checked-in file never needs hand-editing.
 
-4. **Turn on Pages once, in the repo UI.** Settings → Pages → *Build and
-   deployment* → **Source: GitHub Actions**. (This one step can't be done
-   from a workflow file or from here — it's a repo setting.)
+4. **Push to `main`** (or run the workflow manually from the Actions tab).
+   `.github/workflows/deploy-pages.yml` publishes `public/` to a `gh-pages`
+   branch, creating it automatically on the first run.
 
-5. Push to `main` (or run the workflow manually from the Actions tab). The
-   site publishes to `https://<org-or-user>.github.io/<repo>/`.
+5. **Point Pages at that branch, once, in the repo UI.** Settings → Pages
+   → *Build and deployment* → **Source: Deploy from a branch** → **Branch:
+   `gh-pages`, folder: `/ (root)`** → Save. (This step can't be done from a
+   workflow file or from here — it's a repo setting, and `gh-pages` won't
+   exist to pick from that dropdown until step 4 has run at least once.)
+
+   The site then publishes to `https://<org-or-user>.github.io/<repo>/`.
 
 Without step 2–3 configured, the timer itself still works fine on Pages —
 only the Galley AI panel is affected, and it fails closed with "Signal's
