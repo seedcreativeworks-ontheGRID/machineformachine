@@ -472,6 +472,13 @@
     border: 1px solid rgba(255,176,32,0.35);
   }
   .ticker-steps li.current .mark{ color: var(--active); }
+  .ticker-steps li.current .mark.ticker-check{
+    cursor:pointer;
+    font-size:14px;
+    transition: color .15s, transform .1s;
+  }
+  .ticker-steps li.current .mark.ticker-check:active{ transform: scale(0.85); }
+  .ticker-steps li.current .mark.ticker-check.checked{ color: var(--done); }
   .ticker-steps li.current .step-countdown{
     margin-left:auto;
     font-family:'Share Tech Mono', monospace;

@@ -206,7 +206,7 @@ function renderTicker(elapsed){
     }
 
     let cum = 0;
-    const stepsHtml = steps.map(s=>{
+    const stepsHtml = steps.map((s,i)=>{
       const stepStart = cum, stepEnd = cum + s.seconds;
       cum = stepEnd;
       let cls, mark, extra;
@@ -216,8 +216,11 @@ function renderTicker(elapsed){
       } else if(dishElapsed >= stepEnd){
         cls = 'done'; mark = '✓'; extra = durTag;
       } else if(dishElapsed >= stepStart && dishElapsed < stepEnd){
-        cls = 'current'; mark = '▶';
+        cls = 'current';
+        const checked = d.manualChecked && d.manualChecked[i];
+        mark = `<span class="mark ticker-check${checked ? ' checked' : ''}" data-dish-id="${d.id}" data-step-index="${i}">${checked ? '☑' : '☐'}</span>`;
         extra = `<span class="step-countdown">${fmt(stepEnd - dishElapsed)}</span>`;
+        return `<li class="${cls}">${mark}<span class="step-text-inline">${s.text}</span>${extra}</li>`;
       } else {
         cls = 'upcoming'; mark = '○'; extra = durTag;
       }
@@ -357,6 +360,17 @@ document.getElementById('closeDsBtn').addEventListener('click', ()=>{
 document.getElementById('resetBtn').addEventListener('click', reset);
 document.getElementById('tickerToggle').addEventListener('click', ()=>{
   document.getElementById('tickerPanel').classList.toggle('expanded');
+});
+document.getElementById('tickerList').addEventListener('click', (e)=>{
+  const check = e.target.closest('.ticker-check');
+  if(!check) return;
+  const id = parseInt(check.dataset.dishId);
+  const i = parseInt(check.dataset.stepIndex);
+  const dish = dishes.find(d=>d.id===id);
+  if(!dish || !dish.manualChecked) return;
+  dish.manualChecked[i] = !dish.manualChecked[i];
+  renderTicker(totalSeconds - remaining);
+  renderTracks();
 });
 document.getElementById('addDishBtn').addEventListener('click', ()=>{
   const nameInput = document.getElementById('newName');
