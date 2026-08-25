@@ -507,6 +507,40 @@ if(SpeechRecognitionCtor){
   });
 }
 
+/* ===== HOW-TO-USE NARRATION ===== */
+const howtoBtn = document.getElementById('howtoBtn');
+const howtoAudio = document.getElementById('howtoAudio');
+const howtoIcon = document.getElementById('howtoIcon');
+const howtoLabel = document.getElementById('howtoLabel');
+
+function setHowtoState(icon, label, playing){
+  howtoIcon.textContent = icon;
+  howtoLabel.textContent = label;
+  howtoBtn.classList.toggle('playing', playing);
+}
+
+howtoBtn.addEventListener('click', ()=>{
+  if(howtoAudio.paused){
+    howtoAudio.play().catch(()=>{
+      setHowtoState('⚠', 'AUDIO UNAVAILABLE', false);
+      howtoBtn.disabled = true;
+    });
+  } else {
+    howtoAudio.pause();
+    howtoAudio.currentTime = 0;
+  }
+});
+howtoAudio.addEventListener('play', ()=> setHowtoState('⏸', 'PLAYING — TAP TO STOP', true));
+howtoAudio.addEventListener('pause', ()=>{
+  if(howtoBtn.disabled) return; // don't clobber the "AUDIO NOT FOUND" state
+  setHowtoState('🔊', 'HOW TO USE THIS', false);
+});
+howtoAudio.addEventListener('ended', ()=> setHowtoState('🔊', 'HOW TO USE THIS', false));
+howtoAudio.addEventListener('error', ()=>{
+  setHowtoState('⚠', 'AUDIO NOT FOUND', false);
+  howtoBtn.disabled = true;
+});
+
 renderTracks();
 document.getElementById('masterClock').textContent = fmt(totalSeconds);
 renderTicker(0);

@@ -151,6 +151,44 @@
     text-shadow: 0 0 14px rgba(47,216,255,0.5);
   }
 
+  /* HOW-TO-USE NARRATION BUTTON */
+  .howto-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    background: rgba(47,216,255,0.08);
+    border: 1px solid var(--cyan-dim);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family:'Share Tech Mono', monospace;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    padding:11px 14px;
+    margin-bottom:12px;
+    cursor:pointer;
+    transition: background .2s, border-color .2s, box-shadow .2s;
+  }
+  .howto-btn:hover{
+    background: rgba(47,216,255,0.16);
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(47,216,255,0.3);
+  }
+  .howto-btn .howto-icon{ font-size:14px; flex-shrink:0; }
+  .howto-btn.playing{
+    border-color: var(--active);
+    background: rgba(255,176,32,0.12);
+    color: var(--active);
+    animation: pulseglow 1.6s ease-in-out infinite;
+  }
+  .howto-btn:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+    animation:none;
+  }
+
   /* LIVE TICKER PANEL */
   .ticker-panel{
     background: linear-gradient(180deg, #171008, var(--panel));
