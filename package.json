@@ -1,0 +1,18 @@
+{
+  "name": "galley-os-mission-timer",
+  "version": "1.0.0",
+  "description": "Yacht Galley OS — Multi-Dish Ignition Sequencer mission timer with a server-proxied Galley AI cooking assistant.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
+  }
+}

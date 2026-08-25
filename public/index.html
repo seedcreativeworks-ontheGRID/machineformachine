@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SERVE // Mission Timer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap" id="mainView">
+  <div class="sticky-header">
+    <div class="header-row">
+      <div class="eyebrow">YACHT GALLEY OS <span>//</span> SURVIVAL PROTOCOL</div>
+      <button class="ds-link" id="openDsBtn" type="button">⧉ DESIGN SYSTEM</button>
+    </div>
+    <div class="title">MULTI-DISH IGNITION SEQUENCER</div>
+
+    <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
+      <button class="ticker-label" id="tickerToggle" type="button">
+        <span class="ticker-live-dot"></span> LIVE TASKS
+        <span class="ticker-caption" id="tickerCaption">— tap to view</span>
+        <span class="chev">▸</span>
+      </button>
+      <div class="ticker-content">
+        <div class="ticker-list" id="tickerList"></div>
+      </div>
+    </div>
+
+    <div class="master hud-panel"><div class="hud-scan"></div><div class="master-topbar"></div>
+      <div class="master-label">SERVE COUNTDOWN</div>
+      <div class="master-clock-wrap">
+        <svg class="master-ring" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="110" cy="110" r="100" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="4 10" opacity="0.7"/>
+          <circle cx="110" cy="110" r="86" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="1 6" opacity="0.5"/>
+          <circle cx="110" cy="110" r="70" fill="none" stroke="var(--gold)" stroke-width="1" stroke-dasharray="14 4" opacity="0.35"/>
+        </svg>
+        <div class="master-clock" id="masterClock">30:00</div>
+      </div>
+      <div class="master-sub" id="masterSub">STANDBY — SET DISHES AND ENGAGE</div>
+      <div class="master-bar"><div class="master-bar-fill" id="masterBar"></div></div>
+
+      <div class="timeframe-row">
+        <span class="timeframe-label">TIME FRAME</span>
+        <input type="number" id="totalMins" value="30" min="1">
+        <span class="timeframe-unit">MIN</span>
+        <div class="timeframe-presets">
+          <button type="button" class="preset-btn" data-preset="15">15</button>
+          <button type="button" class="preset-btn" data-preset="20">20</button>
+          <button type="button" class="preset-btn active-preset" data-preset="30">30</button>
+          <button type="button" class="preset-btn" data-preset="45">45</button>
+          <button type="button" class="preset-btn" data-preset="60">60</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-engage" id="engageBtn">ENGAGE</button>
+        <button class="btn btn-reset" id="resetBtn">RESET</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel ai-panel hud-panel">
+    <div class="panel-label">GALLEY AI — ASK ABOUT INGREDIENTS, SUBS, ANYTHING</div>
+    <div class="ai-log" id="aiLog">
+      <div class="ai-msg ai-msg-bot">Ask me anything mid-cook — substitutions, what to do with an ingredient, how to fix a step. Keep it quick.</div>
+    </div>
+    <div class="ai-input-row">
+      <button class="ai-mic-btn" id="aiMicBtn" type="button" title="Speak your question">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
+      <input type="text" id="aiInput" placeholder="e.g. my chicken looks undercooked, what do I do?">
+      <button class="ai-send-btn" id="aiSendBtn" type="button">SEND</button>
+    </div>
+  </div>
+
+  <div class="tracks" id="tracks" style="margin-top:18px;"></div>
+
+  <div class="panel hud-panel">
+    <div class="panel-label">ADD DISH</div>
+    <div class="setup-row">
+      <input type="text" class="name" id="newName" placeholder="Dish name (e.g. Fresh Catch)">
+      <input type="number" class="mins" id="newMins" placeholder="min" min="1">
+    </div>
+    <div class="setup-row">
+      <input type="text" class="name" id="newIngredients" placeholder="Ingredients, comma separated (e.g. mahi mahi, lime, sea salt)">
+    </div>
+    <div class="setup-row">
+      <textarea id="newInstructions" placeholder="Cooking instructions..." style="flex:1; background:#0d1219; border:1px solid var(--panel-line); color:var(--ink); border-radius:6px; padding:9px 10px; font-family:'Rajdhani',sans-serif; font-size:13px; outline:none; resize:vertical; min-height:56px;"></textarea>
+    </div>
+    <button class="add-btn" id="addDishBtn">+ ADD TO SEQUENCE</button>
+  </div>
+
+  <div class="note">Each dish auto-ignites at the exact moment it needs to start cooking so every dish finishes together, at SERVE. Longest dishes go first — you don't have to do that math mid-service.</div>
+</div>
+
+<div id="dsView" class="ds-root" style="display:none;">
+
+<div class="ds-wrap">
+
+  <div class="ds-top-row">
+    <button class="ds-back-link" id="closeDsBtn" type="button">◂ BACK TO GALLEY OS</button>
+  </div>
+
+  <div class="ds-eyebrow">ANTHROPIC YACHT SYSTEMS <span>//</span> INTERFACE STANDARD</div>
+  <h1>JARVIS HUD DESIGN SYSTEM</h1>
+  <p class="ds-lede">The visual language behind the Multi-Dish Ignition Sequencer — a heads-up-display aesthetic built for high-stakes, glanceable readouts under pressure. Angular clipped panels, targeting-reticle corners, and a cyan/gold signal language borrowed from arc-reactor tech.</p>
+
+  <!-- 01 COLOR -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">01</span>
+      <span class="ds-section-title">COLOR SYSTEM</span>
+      <span class="ds-section-desc">6 tokens, semantic by function</span>
+    </div>
+    <div class="ds-swatch-grid">
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--bg)"></div><div class="ds-swatch-label">BG <span>#030810</span></div></div>
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--panel)"></div><div class="ds-swatch-label">PANEL <span>#071420</span></div></div>
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--cyan)"></div><div class="ds-swatch-label">CYAN <span>#2fd8ff</span></div></div>
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--gold)"></div><div class="ds-swatch-label">GOLD <span>#ffb020</span></div></div>
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--critical)"></div><div class="ds-swatch-label">CRITICAL <span>#ff3b3b</span></div></div>
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--done)"></div><div class="ds-swatch-label">DONE <span>#26f0b0</span></div></div>
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--ink)"></div><div class="ds-swatch-label">INK <span>#eaf6ff</span></div></div>
+      <div class="ds-swatch"><div class="ds-swatch-color" style="background:var(--dim)"></div><div class="ds-swatch-label">DIM <span>#4c7891</span></div></div>
+    </div>
+  </section>
+
+  <!-- 02 TYPE -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">02</span>
+      <span class="ds-section-title">TYPOGRAPHY</span>
+      <span class="ds-section-desc">3 roles, no overlap</span>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">DISPLAY<br>Orbitron 800</div>
+      <div class="ds-type-sample-orbitron">29:42 IGNITION</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">BODY / UI<br>Rajdhani 600</div>
+      <div class="ds-type-sample-rajdhani">Grill over hot coals, turning every 3-4 min</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">DATA / LABELS<br>Share Tech Mono</div>
+      <div class="ds-type-sample-mono">STATUS: COOKING · 08:42</div>
+    </div>
+  </section>
+
+  <!-- 03 SIGNATURE PANEL -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">03</span>
+      <span class="ds-section-title">SIGNATURE: HUD PANEL</span>
+      <span class="ds-section-desc">clipped corners + reticle brackets</span>
+    </div>
+    <div class="ds-panel-demo-grid">
+      <div class="ds-demo-panel hud-panel">
+        <div class="ds-demo-panel-label">CYAN VARIANT — .hud-panel</div>
+        <div class="ds-demo-readout">14:02</div>
+        <div class="ds-demo-bar"><div class="ds-demo-bar-fill" style="background:linear-gradient(90deg,var(--cyan),var(--standby))"></div></div>
+      </div>
+      <div class="ds-demo-panel hud-panel hud-amber">
+        <div class="ds-demo-panel-label">AMBER VARIANT — .hud-panel.hud-amber</div>
+        <div class="ds-demo-readout" style="color:var(--active); text-shadow:0 0 14px rgba(255,176,32,0.5)">COOKING</div>
+        <div class="ds-demo-bar"><div class="ds-demo-bar-fill" style="width:78%; background:var(--active)"></div></div>
+      </div>
+      <div class="ds-demo-panel hud-panel hud-green">
+        <div class="ds-demo-panel-label">GREEN VARIANT — .hud-panel.hud-green</div>
+        <div class="ds-demo-readout" style="color:var(--done); text-shadow:0 0 14px rgba(38,240,176,0.5)">READY</div>
+        <div class="ds-demo-bar"><div class="ds-demo-bar-fill" style="width:100%; background:var(--done)"></div></div>
+      </div>
+      <div class="ds-demo-panel hud-panel hud-red">
+        <div class="ds-demo-panel-label">RED VARIANT — .hud-panel.hud-red</div>
+        <div class="ds-demo-readout" style="color:var(--critical); text-shadow:0 0 14px rgba(255,59,59,0.6)">00:12</div>
+        <div class="ds-demo-bar"><div class="ds-demo-bar-fill" style="width:8%; background:var(--critical)"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 BUTTONS -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">04</span>
+      <span class="ds-section-title">ACTIONS</span>
+      <span class="ds-section-desc">clipped corners, glow on intent</span>
+    </div>
+    <div class="ds-btn-row">
+      <button class="ds-btn ds-btn-primary">ENGAGE</button>
+      <button class="ds-btn ds-btn-secondary">RESET</button>
+      <button class="ds-btn ds-btn-danger">ABORT</button>
+      <button class="ds-btn ds-btn-secondary" disabled>DISABLED</button>
+    </div>
+  </section>
+
+  <!-- 05 STATUS -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">05</span>
+      <span class="ds-section-title">STATUS BADGES</span>
+      <span class="ds-section-desc">semantic state language</span>
+    </div>
+    <div class="ds-badge-row">
+      <span class="ds-badge ds-badge-standby">STANDBY</span>
+      <span class="ds-badge ds-badge-active">COOKING</span>
+      <span class="ds-badge ds-badge-done">READY</span>
+      <span class="ds-badge ds-badge-critical">CRITICAL</span>
+    </div>
+  </section>
+
+  <!-- 06 MOTION -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">06</span>
+      <span class="ds-section-title">MOTION</span>
+      <span class="ds-section-desc">used sparingly, always purposeful</span>
+    </div>
+    <div class="ds-motion-demo">
+      <div class="ds-motion-box">SCANLINE<div class="ds-scan-line"></div></div>
+      <div class="ds-motion-box"><span class="ds-blink-dot"></span>&nbsp; LIVE PULSE</div>
+      <div class="ds-motion-box">
+        <svg class="ds-ring-demo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="30" r="26" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="3 5" opacity="0.8"/>
+          <circle cx="30" cy="30" r="18" fill="none" stroke="var(--gold)" stroke-width="1" stroke-dasharray="8 3" opacity="0.5"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 PRINCIPLES -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">07</span>
+      <span class="ds-section-title">PRINCIPLES</span>
+      <span class="ds-section-desc">how to extend this system</span>
+    </div>
+    <ul class="ds-principles-list">
+      <li><span class="ds-pnum">01</span><span><b>One signature, everywhere.</b> The clipped corner + reticle bracket is the single identity marker. Don't introduce a second corner treatment — reuse .hud-panel.</span></li>
+      <li><span class="ds-pnum">02</span><span><b>Color means state, not decoration.</b> Cyan = standby/idle. Gold = active/in-progress. Green = complete. Red = critical/time-critical. Never assign these colors arbitrarily.</span></li>
+      <li><span class="ds-pnum">03</span><span><b>Orbitron is for numbers and titles only.</b> It's illegible at body-copy sizes and in long strings — never set instructions or paragraphs in it.</span></li>
+      <li><span class="ds-pnum">04</span><span><b>Motion signals "live," not decoration.</b> Scanlines and pulsing dots should only appear on elements actively updating in real time — a static panel should never scan or blink.</span></li>
+      <li><span class="ds-pnum">05</span><span><b>Glow is a state, not a default.</b> Reserve text/box glow for the current focal readout (master clock, active step). Overusing glow flattens the hierarchy.</span></li>
+    </ul>
+  </section>
+
+  <footer>GALLEY OS DESIGN SYSTEM v1.0 — BUILT FOR SURVIVAL PROTOCOL</footer>
+</div>
+
+</div>
+
+<script src="app.js" defer></script>
+</body>
+</html>
