@@ -43,6 +43,21 @@ jobs:
           };
           EOF
 
+      - name: Cache-bust static assets for this deploy
+        # style.css, app.js, config.js, and the narration mp3 all live at
+        # fixed filenames, so GitHub Pages' CDN (and browsers) can keep
+        # serving a stale cached copy after a new deploy — most visibly
+        # when app.js changes shape (new element IDs) but an old cached
+        # copy is still running against the new HTML. Tag each reference
+        # with the commit SHA so every deploy is a distinct URL.
+        run: |
+          sed -i \
+            -e "s/style\.css\"/style.css?v=${GITHUB_SHA}\"/" \
+            -e "s/config\.js\"/config.js?v=${GITHUB_SHA}\"/" \
+            -e "s/app\.js\" defer/app.js?v=${GITHUB_SHA}\" defer/" \
+            -e "s#audio/how-to-use\.mp3\"#audio/how-to-use.mp3?v=${GITHUB_SHA}\"#" \
+            public/index.html
+
       - name: Publish public/ to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
