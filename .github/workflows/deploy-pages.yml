@@ -1,12 +1,16 @@
 name: Deploy to GitHub Pages
 
-# Publishes public/ to the gh-pages branch, which GitHub Pages is
-# configured to serve from directly (Settings -> Pages -> Source:
-# "Deploy from a branch" -> Branch: gh-pages, Folder: / (root)).
+# Publishes public/ via GitHub's official Actions-based Pages deployment
+# (Settings -> Pages -> Source: "GitHub Actions").
 #
-# The gh-pages branch is created automatically on first run — nothing to
-# set up on that branch ahead of time. After the first successful run,
-# go select it in Settings -> Pages if it isn't already selected there.
+# This is deliberately NOT the "Deploy from a branch" method. Branch-based
+# deploys are served through a CDN cache that only expires on a timer
+# (documented as up to ~10 minutes) — every push looks "broken" for a
+# while even though the deploy itself succeeded. The Actions-based method
+# actively purges that cache on every run, so a finished deploy is live
+# immediately. If Settings -> Pages -> Source is still "Deploy from a
+# branch", switch it to "GitHub Actions" once — this workflow can't do
+# that repo setting for you.
 
 on:
   push:
@@ -17,7 +21,9 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
@@ -26,6 +32,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,12 +53,10 @@ jobs:
           EOF
 
       - name: Cache-bust static assets for this deploy
-        # style.css, app.js, config.js, and the narration mp3 all live at
-        # fixed filenames, so GitHub Pages' CDN (and browsers) can keep
-        # serving a stale cached copy after a new deploy — most visibly
-        # when app.js changes shape (new element IDs) but an old cached
-        # copy is still running against the new HTML. Tag each reference
-        # with the commit SHA so every deploy is a distinct URL.
+        # Belt-and-suspenders: the CDN purge above handles index.html
+        # itself, but browsers can still hold an old style.css/app.js in
+        # their own disk cache. Tag each reference with the commit SHA so
+        # every deploy is also a distinct sub-resource URL.
         run: |
           sed -i \
             -e "s/style\.css\"/style.css?v=${GITHUB_SHA}\"/" \
@@ -58,8 +65,14 @@ jobs:
             -e "s#audio/how-to-use\.mp3\"#audio/how-to-use.mp3?v=${GITHUB_SHA}\"#" \
             public/index.html
 
-      - name: Publish public/ to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload public/ as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
