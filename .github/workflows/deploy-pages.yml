@@ -1,0 +1,54 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time; a newer push cancels an in-flight one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Point the frontend at the API backend
+        # GALLEY_API_BASE_URL is a repo/environment variable (Settings ->
+        # Secrets and variables -> Actions -> Variables), e.g.
+        # https://your-project.vercel.app. Left unset, the chat panel will
+        # fail closed with "Signal's down" instead of crashing — see
+        # README.md "Hosting the frontend on GitHub Pages".
+        run: |
+          cat > public/config.js <<EOF
+          window.GALLEY_CONFIG = {
+            apiBase: "${{ vars.GALLEY_API_BASE_URL }}"
+          };
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload public/ as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

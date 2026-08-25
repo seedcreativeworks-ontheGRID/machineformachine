@@ -1,5 +1,6 @@
 import { getGalleyAiReply, ChatProxyError } from '../server/lib/anthropicProxy.js';
 import { checkRateLimit } from '../server/lib/rateLimiter.js';
+import { applyCorsHeaders } from '../server/lib/cors.js';
 
 /**
  * Vercel serverless function: POST /api/chat
@@ -8,8 +9,14 @@ import { checkRateLimit } from '../server/lib/rateLimiter.js';
  * run as a standalone Node server.
  */
 export default async function handler(req, res) {
+  applyCorsHeaders(res, req.headers.origin);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+    res.setHeader('Allow', 'POST, OPTIONS');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 

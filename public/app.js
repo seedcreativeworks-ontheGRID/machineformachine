@@ -441,7 +441,8 @@ async function aiSend(text){
 
   try{
     const context = buildKitchenContext();
-    const response = await fetch("/api/chat", {
+    const apiBase = (window.GALLEY_CONFIG && window.GALLEY_CONFIG.apiBase) || "";
+    const response = await fetch(`${apiBase}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text, context })
