@@ -29,7 +29,6 @@ let running = false;
 let timerHandle = null;
 let audioCtx = null;
 let voiceCuesEnabled = (localStorage.getItem('galleyVoiceCues') !== 'off');
-let announcedMilestones = new Set();
 
 // Spoken step cues use the browser's own text-to-speech (Web Speech API) —
 // there's no way to re-synthesize the exact recorded narration voice from
@@ -51,33 +50,35 @@ function speak(text){
   }catch(e){}
 }
 
+// Every 5 seconds of cook time, read out a fresh progress update — a
+// running feedback loop instead of one-off announcements — covering
+// what's cooking now and what's about to ignite. Skips a cycle if the
+// previous update is still being read, rather than cutting it off.
 function checkVoiceCues(elapsed){
   if(!voiceCuesEnabled) return;
+  if(elapsed <= 0 || elapsed % 5 !== 0) return;
+  if('speechSynthesis' in window && window.speechSynthesis.speaking) return;
+
+  const parts = [];
   const remainingSecs = totalSeconds - elapsed;
-  [300, 60].forEach(mark=>{
-    if(remainingSecs === mark && !announcedMilestones.has(mark)){
-      announcedMilestones.add(mark);
-      speak(mark === 300 ? 'Five minutes to serve.' : 'One minute to serve.');
-    }
-  });
+  if(remainingSecs === 300) parts.push('Five minutes to serve');
+  if(remainingSecs === 60) parts.push('One minute to serve');
+
   dishes.forEach(d=>{
     const dur = d.mins*60;
     const startOffset = Math.max(0, totalSeconds - dur);
-    if(elapsed < startOffset || elapsed >= totalSeconds) return;
-    const dishElapsed = elapsed - startOffset;
-    const steps = d.steps && d.steps.length ? d.steps : [{text:'Cook', seconds:dur}];
-    let cum = 0, idx = 0;
-    for(let i=0;i<steps.length;i++){
-      if(dishElapsed < cum + steps[i].seconds){ idx = i; break; }
-      cum += steps[i].seconds;
-      idx = i;
-    }
-    if(d._lastAnnouncedStep === undefined) d._lastAnnouncedStep = -1;
-    if(idx !== d._lastAnnouncedStep){
-      d._lastAnnouncedStep = idx;
-      speak(`${d.name}: ${steps[idx].text}`);
+    if(elapsed < startOffset){
+      const toStart = startOffset - elapsed;
+      if(toStart <= 10) parts.push(`${d.name} ignites in ${toStart} seconds`);
+    } else if(elapsed < totalSeconds){
+      const cur = currentStepFor(d, elapsed - startOffset);
+      parts.push(`${d.name}: ${cur.text}, ${fmt(cur.remaining)} left`);
+    } else {
+      parts.push(`${d.name} is ready`);
     }
   });
+
+  if(parts.length) speak(parts.join('. ') + '.');
 }
 
 function beep(freq, dur){
@@ -385,8 +386,6 @@ function start(){
   totalSeconds = Math.max(60, parseInt(document.getElementById('totalMins').value||30)*60);
   remaining = totalSeconds;
   running = true;
-  announcedMilestones = new Set();
-  dishes.forEach(d=> d._lastAnnouncedStep = -1);
   document.getElementById('masterClock').classList.remove('critical');
   renderTracks();
   renderTicker(0);
