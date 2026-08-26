@@ -1476,6 +1476,73 @@
     padding-top:2px;
   }
   .ds-principles-list b{ color: var(--ink); }
+
+  .ds-view-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:16px;
+    margin: 20px 0 8px;
+  }
+  .ds-view-card{
+    border:1px solid var(--panel-line);
+    border-left:3px solid var(--cyan-dim);
+    border-radius:8px;
+    padding:16px 18px;
+    background: rgba(47,216,255,0.03);
+  }
+  .ds-view-card-label{
+    font-family:'Orbitron', sans-serif;
+    font-weight:800;
+    font-size:13px;
+    letter-spacing:0.06em;
+    color: var(--cyan);
+    margin-bottom:10px;
+  }
+  .ds-view-card p{
+    font-family:'Rajdhani', sans-serif;
+    font-size:13px;
+    line-height:1.6;
+    color: var(--dim);
+    text-align:left;
+  }
+  .ds-view-card p b{ color: var(--ink); }
+  .ds-view-card sup a, .ds-lede sup a{
+    color: var(--cyan);
+    text-decoration:none;
+    font-size:10px;
+  }
+  .ds-view-card sup a:hover, .ds-lede sup a:hover{ text-decoration:underline; }
+
+  .ds-citations{
+    border-top:1px solid var(--panel-line);
+    margin: 32px 0 40px;
+    padding-top:22px;
+  }
+  .ds-citations-label{
+    font-family:'Share Tech Mono', monospace;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.18em;
+    color: var(--dim);
+    margin-bottom:14px;
+  }
+  .ds-citations ol{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+  }
+  .ds-citations li{
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
+    line-height:1.6;
+    color: var(--dim);
+    display:flex;
+    gap:8px;
+  }
+  .ds-citations .cite-num{ color: var(--cyan); flex-shrink:0; }
+  .ds-citations a{ color: var(--cyan); text-decoration:none; word-break:break-all; }
+  .ds-citations a:hover{ text-decoration:underline; }
 #dsView footer, #rationaleView footer{
     text-align:center;
     font-family:'Share Tech Mono', monospace;
@@ -1695,6 +1762,7 @@
 
     .ds-wrap{ padding: 0 2px; }
     .ds-root{ padding: 24px 12px 60px; }
+    .ds-view-grid{ grid-template-columns: 1fr; }
     h1{ font-size: clamp(22px, 8vw, 32px); }
   }
 
