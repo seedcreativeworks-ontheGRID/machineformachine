@@ -317,6 +317,7 @@ function start(){
   document.getElementById('tickerPanel').classList.add('expanded');
   document.getElementById('tickerCaption').textContent = '— sequence live';
   document.getElementById('engageBtn').disabled = true;
+  document.getElementById('tickerEngageBtn').style.display = 'none';
   document.getElementById('totalMins').disabled = true;
   document.querySelectorAll('.preset-btn').forEach(b=> b.disabled = true);
   document.getElementById('addDishBtn').disabled = true;
@@ -328,6 +329,7 @@ function stop(){
   running = false;
   clearInterval(timerHandle);
   document.getElementById('engageBtn').disabled = false;
+  document.getElementById('tickerEngageBtn').style.display = '';
   document.getElementById('totalMins').disabled = false;
   document.querySelectorAll('.preset-btn').forEach(b=> b.disabled = false);
   document.getElementById('addDishBtn').disabled = false;
@@ -347,6 +349,10 @@ function reset(){
 }
 
 document.getElementById('engageBtn').addEventListener('click', start);
+document.getElementById('tickerEngageBtn').addEventListener('click', (e)=>{
+  e.stopPropagation(); // don't also toggle the LIVE TASKS bar open/closed
+  start();
+});
 document.getElementById('openDsBtn').addEventListener('click', ()=>{
   document.getElementById('mainView').style.display = 'none';
   document.getElementById('dsView').style.display = 'block';

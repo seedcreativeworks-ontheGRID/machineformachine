@@ -286,8 +286,30 @@
     text-transform:none;
     margin-left:2px;
   }
-  .ticker-label .chev{
+  .ticker-header-actions{
     margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .ticker-engage-btn{
+    font-family:'Share Tech Mono', monospace;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.1em;
+    color:#1a0f00;
+    background: linear-gradient(180deg, #ffc44d, var(--gold));
+    border:none;
+    border-radius:4px;
+    padding:6px 12px;
+    cursor:pointer;
+    box-shadow: 0 0 10px rgba(255,176,32,0.4);
+    transition: box-shadow .2s, opacity .2s;
+  }
+  .ticker-engage-btn:hover{ box-shadow: 0 0 14px rgba(255,176,32,0.6); }
+  .ticker-engage-btn:disabled{ opacity:0.4; cursor:not-allowed; box-shadow:none; }
+  .ticker-label .chev{
     font-size:12px;
     color:var(--dim);
     transition: transform .2s;

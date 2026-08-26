@@ -54,11 +54,14 @@
     </div>
 
     <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
-      <button class="ticker-label" id="tickerToggle" type="button">
+      <div class="ticker-label" id="tickerToggle">
         <span class="ticker-live-dot"></span> LIVE TASKS
         <span class="ticker-caption" id="tickerCaption">— tap to view</span>
-        <span class="chev">▸</span>
-      </button>
+        <div class="ticker-header-actions">
+          <button class="ticker-engage-btn" id="tickerEngageBtn" type="button">ENGAGE</button>
+          <span class="chev">▸</span>
+        </div>
+      </div>
       <div class="ticker-content">
         <div class="ticker-list" id="tickerList"></div>
       </div>
