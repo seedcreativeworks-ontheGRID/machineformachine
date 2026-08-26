@@ -185,6 +185,25 @@
     box-shadow: 0 0 10px rgba(47,216,255,0.35);
   }
 
+  .header-actions-left{
+    position:absolute;
+    left:0;
+    top:50%;
+    transform: translateY(-50%);
+    display:flex;
+    align-items:center;
+  }
+  .rationale-link{
+    color: var(--gold);
+    border-color: #5c3d10;
+    background: rgba(255,176,32,0.08);
+  }
+  .rationale-link:hover{
+    background: rgba(255,176,32,0.18);
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(255,176,32,0.35);
+  }
+
   .title{
     font-family:'Orbitron', sans-serif;
     font-weight:800;
@@ -1178,7 +1197,7 @@
     margin: 24px 0 8px;
   }
   .ds-eyebrow span{ color: var(--active); }
-#dsView h1{
+#dsView h1, #rationaleView h1{
     font-family:'Orbitron', sans-serif;
     font-weight:900;
     font-size: clamp(28px, 6vw, 44px);
@@ -1196,7 +1215,32 @@
     margin: 0 auto 48px;
     line-height:1.6;
   }
-#dsView section{ margin-bottom:56px; }
+  .ds-truth-banner{
+    border: 1px solid #5c3d10;
+    background: rgba(255,176,32,0.08);
+    border-radius: 8px;
+    padding: 18px 22px;
+    max-width: 700px;
+    margin: 0 auto 48px;
+  }
+  .ds-truth-tag{
+    display:block;
+    font-family:'Share Tech Mono', monospace;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.2em;
+    color: var(--gold);
+    margin-bottom:10px;
+  }
+  .ds-truth-banner p{
+    font-family:'Rajdhani', sans-serif;
+    font-style: italic;
+    font-size:16px;
+    line-height:1.6;
+    color: var(--ink);
+  }
+
+#dsView section, #rationaleView section{ margin-bottom:56px; }
   .ds-section-head{
     display:flex;
     align-items:baseline;
@@ -1415,7 +1459,7 @@
     padding-top:2px;
   }
   .ds-principles-list b{ color: var(--ink); }
-#dsView footer{
+#dsView footer, #rationaleView footer{
     text-align:center;
     font-family:'Share Tech Mono', monospace;
     font-size:10px;
@@ -1472,15 +1516,17 @@
     #mainView.view-sticky .note,
     #mainView.view-banded .note{ grid-area: note; }
 
-    /* ---- DECK: tracks+add | Galley AI | live tasks+clock rail ---- */
+    /* ---- DECK: full-width player + clock up top, then
+       tracks+add | Galley AI | live tasks rail below ---- */
     #mainView.view-deck{
       grid-template-columns: 1.15fr 1fr 300px;
       grid-template-areas:
         "eyebrow    eyebrow    eyebrow"
         "titlearea  titlearea  titlearea"
         "rail       rail       rail"
+        "master     master     master"
         "tracks     ai         ticker"
-        "add        ai         master"
+        "add        ai         ticker"
         "note       note       note";
     }
     #mainView.view-deck .rail-cluster{ display:contents; }
@@ -1488,6 +1534,8 @@
     #mainView.view-deck #howtoAudio{ grid-area: rail; }
     #mainView.view-deck .ticker-panel{ grid-area: ticker; align-self:start; }
     #mainView.view-deck .master{ grid-area: master; }
+    #mainView.view-deck .master .controls{ max-width:480px; margin-left:auto; margin-right:auto; }
+    #mainView.view-deck .master .timeframe-row{ max-width:480px; margin-left:auto; margin-right:auto; }
     /* The rail column here is narrower than the ticker header was
        designed for (full mobile width) — drop the decorative caption
        and tighten up so LIVE TASKS / ENGAGE / chevron fit on one line. */
@@ -1525,28 +1573,30 @@
     }
     #mainView.view-sticky #tracks{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
 
-    /* ---- BANDED: full-width stack; dishes group by status inside #tracks ---- */
+    /* ---- BANDED: a compact bento header (rail / master+ai+ticker as
+       tiles instead of four full-width stacked panels) so the recipes
+       start well above the fold, then dishes group by status below ---- */
     #mainView.view-banded{
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
       grid-template-areas:
-        "eyebrow"
-        "titlearea"
-        "rail"
-        "ai"
-        "ticker"
-        "master"
-        "tracks"
-        "add"
-        "note";
+        "eyebrow    eyebrow"
+        "titlearea  titlearea"
+        "rail       rail"
+        "master     ai"
+        "master     ticker"
+        "tracks     tracks"
+        "add        add"
+        "note       note";
       max-width: 1100px;
       margin: 0 auto;
     }
     #mainView.view-banded .rail-cluster{ display:contents; }
     #mainView.view-banded .howto-rail{ grid-area: rail; }
     #mainView.view-banded #howtoAudio{ grid-area: rail; }
-    #mainView.view-banded .ticker-panel{ grid-area: ticker; }
+    #mainView.view-banded .ticker-panel{ grid-area: ticker; align-self:start; }
     #mainView.view-banded .master{ grid-area: master; }
-    #mainView.view-banded .ai-panel{ grid-area: ai; }
+    #mainView.view-banded .ai-panel{ grid-area: ai; display:flex; flex-direction:column; }
+    #mainView.view-banded .ai-panel .ai-log{ flex:1; min-height:0; }
     #mainView.view-banded #tracks{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
     #mainView.view-banded #tracks .track.active{ grid-column: 1 / -1; order:-1; }
     #mainView.view-banded #tracks .track:not(.active){ order:1; }
@@ -1572,7 +1622,7 @@
 
     /* Header: stack the design-system link below the eyebrow instead of overlapping it */
     .header-row{ flex-direction: column; gap:8px; }
-    .header-actions{
+    .header-actions, .header-actions-left{
       position: static;
       transform: none;
       align-self: center;
