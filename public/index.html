@@ -64,22 +64,22 @@
       </div>
       <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3"></audio>
 
-      <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
-        <div class="ticker-label" id="tickerToggle">
-          <span class="ticker-live-dot"></span> LIVE TASKS
-          <span class="ticker-caption" id="tickerCaption">— tap to view</span>
-          <div class="ticker-header-actions">
-            <button class="voice-cue-btn" id="voiceCueBtn" type="button" title="Spoken step cues: on">🔊</button>
-            <button class="ticker-engage-btn" id="tickerEngageBtn" type="button">ENGAGE</button>
-            <span class="chev">▸</span>
+      <div class="master hud-panel"><div class="hud-scan"></div><div class="master-topbar"></div>
+        <div class="ticker-panel" id="tickerPanel">
+          <div class="ticker-label" id="tickerToggle">
+            <span class="ticker-live-dot"></span> LIVE TASKS
+            <span class="ticker-caption" id="tickerCaption">— tap to view</span>
+            <div class="ticker-header-actions">
+              <button class="voice-cue-btn" id="voiceCueBtn" type="button" title="Spoken step cues: on">🔊</button>
+              <button class="ticker-engage-btn" id="tickerEngageBtn" type="button">ENGAGE</button>
+              <span class="chev">▸</span>
+            </div>
+          </div>
+          <div class="ticker-content">
+            <div class="ticker-list" id="tickerList"></div>
           </div>
         </div>
-        <div class="ticker-content">
-          <div class="ticker-list" id="tickerList"></div>
-        </div>
-      </div>
 
-      <div class="master hud-panel"><div class="hud-scan"></div><div class="master-topbar"></div>
         <div class="master-label">SERVE COUNTDOWN</div>
         <div class="master-clock-wrap">
           <svg class="master-ring" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
@@ -352,7 +352,7 @@
     </div>
     <ul class="ds-principles-list">
       <li><span class="ds-pnum">01</span><span><b>Galley AI.</b> Mid-cook questions ("my chicken looks undercooked, what do I do?") can't wait for a phone search. A chat panel gives a fast, specific answer without the chef stepping away from the pass.</span></li>
-      <li><span class="ds-pnum">02</span><span><b>LIVE TASKS ticker.</b> A full recipe card is too much to scan while hands are busy. The ticker distills every dish down to the one step that matters right now, with a checkbox that appears intuitively as each step comes up in real time.</span></li>
+      <li><span class="ds-pnum">02</span><span><b>LIVE TASKS ticker.</b> A full recipe card is too much to scan while hands are busy. The ticker distills every dish down to the one step that matters right now, with a checkbox that appears intuitively as each step comes up in real time — merged directly into the SERVE COUNTDOWN panel, so the clock and the task list it drives live in one place instead of two.</span></li>
       <li><span class="ds-pnum">03</span><span><b>Docked player rail.</b> A 60-second spoken briefing that can be listened to hands-free while prepping, instead of another thing to read before starting the clock.</span></li>
       <li><span class="ds-pnum">04</span><span><b>DECK / STICKY / BANDED layouts.</b> Different galley setups need different glanceability — a wide command-deck view, a sticky rail that follows scroll, or a compact banded view that surfaces the recipes without excess scrolling.</span></li>
     </ul>
@@ -370,15 +370,15 @@
     <div class="ds-view-grid">
       <div class="ds-view-card">
         <div class="ds-view-card-label">DECK — the whole counter</div>
-        <p>Nothing on a yacht behaves like a second monitor. Deck spreads the ignition clock, every dish, Galley AI, and LIVE TASKS across one wide sweep so the chef never changes screens to know the state of the cook — <b>Visibility of System Status</b> <sup><a href="#cite-1">[1]</a></sup> taken literally: state that isn't visible costs a click, and three minutes from serve, a click is time nobody has.</p>
+        <p>Nothing on a yacht behaves like a second monitor. Deck spreads every dish, Galley AI, and the SERVE COUNTDOWN — with LIVE TASKS merged straight into it, clock and task list as one panel — across one wide sweep so the chef never changes screens to know the state of the cook — <b>Visibility of System Status</b> <sup><a href="#cite-1">[1]</a></sup> taken literally: state that isn't visible costs a click, and three minutes from serve, a click is time nobody has.</p>
       </div>
       <div class="ds-view-card">
         <div class="ds-view-card-label">STICKY — the pinned reference</div>
-        <p>Once the chef has scrolled down into a recipe's steps or a Galley AI answer, the clock can't scroll away with them. Sticky pins the ignition clock and ENGAGE controls to a rail so they're always the same short reach away — the target-distance logic behind <b>Fitts's Law</b> <sup><a href="#cite-4">[4]</a></sup> — in a pinned-sidebar pattern the chef has already used in a hundred other dashboards without thinking, per <b>Jakob's Law</b> <sup><a href="#cite-5">[5]</a></sup>.</p>
+        <p>Once the chef has scrolled down into a recipe's steps or a Galley AI answer, the clock can't scroll away with them. Sticky pins the whole countdown panel — LIVE TASKS and ENGAGE included, since they're one panel now — to a rail so they're always the same short reach away — the target-distance logic behind <b>Fitts's Law</b> <sup><a href="#cite-4">[4]</a></sup> — in a pinned-sidebar pattern the chef has already used in a hundred other dashboards without thinking, per <b>Jakob's Law</b> <sup><a href="#cite-5">[5]</a></sup>.</p>
       </div>
       <div class="ds-view-card">
         <div class="ds-view-card-label">BANDED — the triage view</div>
-        <p>With the rescue ship close, there's no time to scroll past a tall header to find out what needs attention. Banded compresses the controls into a compact strip and groups dishes into COOKING NOW vs STANDBY — fewer, sorted options instead of an equal scan of everything, per <b>Hick's Law</b> <sup><a href="#cite-6">[6]</a></sup> — and puts the recipes where eyes land first in the <b>F-shaped scan pattern</b> people already read pages in <sup><a href="#cite-7">[7]</a></sup>.</p>
+        <p>With the rescue ship close, there's no time to scroll past a tall header to find out what needs attention. Banded compresses the rail, the merged countdown/LIVE TASKS panel, and Galley AI into a compact bento strip, then groups dishes into COOKING NOW vs STANDBY below it — fewer, sorted options instead of an equal scan of everything, per <b>Hick's Law</b> <sup><a href="#cite-6">[6]</a></sup> — and puts the recipes where eyes land first in the <b>F-shaped scan pattern</b> people already read pages in <sup><a href="#cite-7">[7]</a></sup>.</p>
       </div>
     </div>
 

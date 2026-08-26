@@ -100,12 +100,12 @@
   }
   /* Explicit stacking order so DOM position can move freely (needed for
      the desktop layout variants below) without changing today's mobile
-     sequence: rail, then Galley AI, then live tasks, then master clock. */
+     sequence: rail, then Galley AI, then the master clock — which now has
+     LIVE TASKS merged into its own top section, not a separate panel. */
   .ai-panel{ order:2; }
   .rail-cluster{ display:contents; }
   .howto-rail{ order:1; }
   #howtoAudio{ order:1; }
-  .ticker-panel{ order:3; }
   .master{ order:4; }
 
   .header-row{
@@ -317,13 +317,14 @@
     text-align:right;
   }
 
-  /* LIVE TICKER PANEL */
+  /* LIVE TASKS — merged into the top of the SERVE COUNTDOWN panel (.master)
+     rather than a separate floating bar, so the clock and the task list
+     that drives it live in one place instead of two. */
   .ticker-panel{
-    background: linear-gradient(180deg, #171008, var(--panel));
-    border: 1px solid #3a2610;
-    border-radius: 10px;
-    padding: 14px 16px 12px;
-    margin-bottom: 12px;
+    background: linear-gradient(180deg, rgba(255,176,32,0.08), transparent);
+    margin: -16px -20px 14px;
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid #3a2610;
     cursor:pointer;
   }
   .ticker-label{
@@ -1600,44 +1601,30 @@
     #mainView.view-sticky .note,
     #mainView.view-banded .note{ grid-area: note; }
 
-    /* ---- DECK: full-width player + clock up top, then
-       tracks+add | Galley AI | live tasks rail below ---- */
+    /* ---- DECK: full-width player + clock (with LIVE TASKS merged into
+       its top) up top, then tracks+add | Galley AI below ---- */
     #mainView.view-deck{
-      grid-template-columns: 1.15fr 1fr 300px;
+      grid-template-columns: 1.15fr 1fr;
       grid-template-areas:
-        "eyebrow    eyebrow    eyebrow"
-        "titlearea  titlearea  titlearea"
-        "rail       rail       rail"
-        "master     master     master"
-        "tracks     ai         ticker"
-        "add        ai         ticker"
-        "note       note       note";
+        "eyebrow    eyebrow"
+        "titlearea  titlearea"
+        "rail       rail"
+        "master     master"
+        "tracks     ai"
+        "add        ai"
+        "note       note";
     }
     #mainView.view-deck .rail-cluster{ display:contents; }
     #mainView.view-deck .howto-rail{ grid-area: rail; }
     #mainView.view-deck #howtoAudio{ grid-area: rail; }
-    #mainView.view-deck .ticker-panel{ grid-area: ticker; align-self:start; }
     #mainView.view-deck .master{ grid-area: master; }
     #mainView.view-deck .master .controls{ max-width:480px; margin-left:auto; margin-right:auto; }
     #mainView.view-deck .master .timeframe-row{ max-width:480px; margin-left:auto; margin-right:auto; }
-    /* The rail column here is narrower than the ticker header was
-       designed for (full mobile width) — drop the decorative caption
-       and tighten up so LIVE TASKS / ENGAGE / chevron fit on one line. */
-    #mainView.view-deck .ticker-label,
-    #mainView.view-sticky .ticker-label{ flex-wrap:nowrap; }
-    #mainView.view-deck .ticker-caption,
-    #mainView.view-sticky .ticker-caption{ display:none; }
-    #mainView.view-deck .ticker-header-actions,
-    #mainView.view-sticky .ticker-header-actions{ gap:6px; }
-    #mainView.view-deck .ticker-engage-btn,
-    #mainView.view-sticky .ticker-engage-btn{ padding:5px 8px; font-size:9px; }
-    #mainView.view-deck .voice-cue-btn,
-    #mainView.view-sticky .voice-cue-btn{ padding:4px 6px; font-size:11px; }
     #mainView.view-deck .ai-panel{ grid-area: ai; display:flex; flex-direction:column; }
     #mainView.view-deck .ai-panel .ai-log{ flex:1; }
     #mainView.view-deck #tracks{ display:grid; grid-template-columns:1fr; gap:10px; }
 
-    /* ---- STICKY: player+live tasks+clock pinned left, everything else scrolls right ---- */
+    /* ---- STICKY: player + clock (with LIVE TASKS merged in) pinned left, everything else scrolls right ---- */
     #mainView.view-sticky{
       grid-template-columns: 300px 1fr;
       grid-template-areas:
@@ -1648,6 +1635,14 @@
         "cluster    add"
         "note       note";
     }
+    /* The rail column here is narrower than the ticker header was
+       designed for (full mobile width) — drop the decorative caption
+       and tighten up so LIVE TASKS / ENGAGE / chevron fit on one line. */
+    #mainView.view-sticky .ticker-label{ flex-wrap:nowrap; }
+    #mainView.view-sticky .ticker-caption{ display:none; }
+    #mainView.view-sticky .ticker-header-actions{ gap:6px; }
+    #mainView.view-sticky .ticker-engage-btn{ padding:5px 8px; font-size:9px; }
+    #mainView.view-sticky .voice-cue-btn{ padding:4px 6px; font-size:11px; }
     #mainView.view-sticky .rail-cluster{
       display:flex;
       flex-direction:column;
@@ -1698,7 +1693,6 @@
         "titlearea  titlearea"
         "rail       rail"
         "master     ai"
-        "master     ticker"
         "tracks     tracks"
         "add        add"
         "note       note";
@@ -1708,7 +1702,6 @@
     #mainView.view-banded .rail-cluster{ display:contents; }
     #mainView.view-banded .howto-rail{ grid-area: rail; }
     #mainView.view-banded #howtoAudio{ grid-area: rail; }
-    #mainView.view-banded .ticker-panel{ grid-area: ticker; align-self:start; }
     #mainView.view-banded .master{ grid-area: master; align-self:start; height:fit-content; }
     #mainView.view-banded .ai-panel{ grid-area: ai; display:flex; flex-direction:column; }
     #mainView.view-banded .ai-panel .ai-log{ flex:1; min-height:0; }
@@ -1747,6 +1740,7 @@
     .title{ font-size:14px; letter-spacing:0.08em; }
 
     .master{ padding: 14px 14px 12px; }
+    .ticker-panel{ margin: -14px -14px 12px; padding: 12px 14px 10px; }
     .master-ring{ width:160px; height:160px; }
     .master-clock{ font-size: clamp(32px, 15vw, 46px); }
 
