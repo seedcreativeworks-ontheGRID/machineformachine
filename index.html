@@ -7,13 +7,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=b1421082932e14af8530a26c992f34421bd0b7e9">
-<script src="config.js?v=b1421082932e14af8530a26c992f34421bd0b7e9"></script>
+<link rel="stylesheet" href="style.css?v=e0003c9739412113b2d12ae9453e65217eae96af">
+<script src="config.js?v=e0003c9739412113b2d12ae9453e65217eae96af"></script>
 </head>
 <body>
 <div class="wrap" id="mainView">
   <div class="sticky-header">
     <div class="header-row">
+      <div class="header-actions-left">
+        <button class="ds-link rationale-link" id="openRationaleBtn" type="button">◆ WHY THIS EXISTS</button>
+      </div>
       <div class="eyebrow">YACHT GALLEY OS <span>//</span> SURVIVAL PROTOCOL</div>
       <div class="header-actions">
         <div class="layout-toggle" id="layoutToggle" role="group" aria-label="Layout">
@@ -59,7 +62,7 @@
         </button>
         <span class="howto-time" id="howtoTime">0:00</span>
       </div>
-      <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3?v=b1421082932e14af8530a26c992f34421bd0b7e9"></audio>
+      <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3?v=e0003c9739412113b2d12ae9453e65217eae96af"></audio>
 
       <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
         <div class="ticker-label" id="tickerToggle">
@@ -282,6 +285,93 @@
 
 </div>
 
-<script src="app.js?v=b1421082932e14af8530a26c992f34421bd0b7e9" defer></script>
+<div id="rationaleView" class="ds-root" style="display:none;">
+
+<div class="ds-wrap">
+
+  <div class="ds-top-row">
+    <button class="ds-back-link" id="closeRationaleBtn" type="button">◂ BACK TO GALLEY OS</button>
+  </div>
+
+  <div class="ds-eyebrow">YACHT GALLEY OS <span>//</span> ORIGIN FILE</div>
+  <h1>WHY THIS EXISTS</h1>
+  <p class="ds-lede">This isn't marketing copy. This is the true rationale behind the Multi-Dish Ignition Sequencer — the actual brief it was built to answer, and the reasoning behind every decision that followed from it.</p>
+
+  <div class="ds-truth-banner">
+    <span class="ds-truth-tag">◆ THE ORIGINAL BRIEF, VERBATIM</span>
+    <p>"A Michelin-trained chef, stranded with minimal gadgets on a tech-loaded yacht, has 30 minutes to cook a full multi-dish meal for 20 hungry people — chicken, island vegetables, seafood — before a rescue ship arrives."</p>
+  </div>
+
+  <!-- 01 THE SITUATION -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">01</span>
+      <span class="ds-section-title">THE SITUATION</span>
+      <span class="ds-section-desc">why the constraints matter</span>
+    </div>
+    <p class="ds-lede" style="margin-bottom:0;">No brigade. No mise en place laid out by a prep team. One galley, one chef, three dishes that all need to be hot at the same moment, and a rescue ship's ETA acting as a hard stop that doesn't negotiate. Twenty people are waiting to eat once, not in shifts. That's the whole scenario — and it's deliberately unforgiving: not enough time to cook things one after another, not enough hands to cook them all "at once" without a plan.</p>
+  </section>
+
+  <!-- 02 THE CORE PROBLEM -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">02</span>
+      <span class="ds-section-title">THE CORE PROBLEM</span>
+      <span class="ds-section-desc">why a stopwatch doesn't solve this</span>
+    </div>
+    <p class="ds-lede" style="margin-bottom:0;">Chicken skewers, charred vegetables, and a seared catch don't take the same amount of time to cook. Start them all "now" and hope, and something finishes cold and waiting, or something else gets rushed and undercooked right as the ship pulls in. A normal countdown answers "how much time is left." This situation needed the opposite question answered, per dish: "when does THIS need to start so it's still hot the moment everything else is"? That's a scheduling problem, not a timer problem — and it's the reason this exists instead of a stock kitchen-timer app.</p>
+  </section>
+
+  <!-- 03 THE SOLUTION CONCEPT -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">03</span>
+      <span class="ds-section-title">THE SOLUTION CONCEPT</span>
+      <span class="ds-section-desc">reverse-scheduling, in one sentence</span>
+    </div>
+    <p class="ds-lede" style="margin-bottom:0;">Pick one shared SERVE time. For every dish, subtract that dish's own cook duration from SERVE to get its IGNITION time — the exact moment it has to start. The longest dish ignites first, the shortest last, and all of them land on the pass together. The chef doesn't do that math under pressure; the app already did it the moment the dishes and the time frame were set. That mechanic — one deadline, many dishes, back-calculated start times — is the entire idea behind "Multi-Dish Ignition Sequencer."</p>
+  </section>
+
+  <!-- 04 WHY THE HUD AESTHETIC -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">04</span>
+      <span class="ds-section-title">WHY THE HUD AESTHETIC</span>
+      <span class="ds-section-desc">form follows the scenario, not fashion</span>
+    </div>
+    <p class="ds-lede" style="margin-bottom:0;">A "tech-loaded yacht" and a rescue-ship deadline read like mission control, not a recipe blog — so the interface was built to be glanced at across a hot, chaotic galley under time pressure, not read closely like a cookbook. Cyan for standby, gold for active, red for critical, green for done: color carries the state so a half-second glance tells the chef what needs attention. See the DESIGN SYSTEM page (top right) for the full token set — it exists for the same reason this page does: nothing here is decoration without a reason.</p>
+  </section>
+
+  <!-- 05 FEATURE EVOLUTION -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">05</span>
+      <span class="ds-section-title">FEATURE EVOLUTION</span>
+      <span class="ds-section-desc">what got added, and the problem each one answers</span>
+    </div>
+    <ul class="ds-principles-list">
+      <li><span class="ds-pnum">01</span><span><b>Galley AI.</b> Mid-cook questions ("my chicken looks undercooked, what do I do?") can't wait for a phone search. A chat panel gives a fast, specific answer without the chef stepping away from the pass.</span></li>
+      <li><span class="ds-pnum">02</span><span><b>LIVE TASKS ticker.</b> A full recipe card is too much to scan while hands are busy. The ticker distills every dish down to the one step that matters right now, with a checkbox that appears intuitively as each step comes up in real time.</span></li>
+      <li><span class="ds-pnum">03</span><span><b>Docked player rail.</b> A 60-second spoken briefing that can be listened to hands-free while prepping, instead of another thing to read before starting the clock.</span></li>
+      <li><span class="ds-pnum">04</span><span><b>DECK / STICKY / BANDED layouts.</b> Different galley setups need different glanceability — a wide command-deck view, a sticky rail that follows scroll, or a compact banded view that surfaces the recipes without excess scrolling.</span></li>
+    </ul>
+  </section>
+
+  <!-- 06 CURRENT STATE -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">06</span>
+      <span class="ds-section-title">CURRENT STATE</span>
+      <span class="ds-section-desc">where the build stands today</span>
+    </div>
+    <p class="ds-lede" style="margin-bottom:0;">Every piece on this page is live in the app you're using right now — the reverse-scheduling engine, the HUD design system, Galley AI, the ticker, the narration rail, and the three desktop layouts. This page exists so that reasoning stays attached to the product instead of living only in a chat log: the brief above is the actual "why," and everything else in Galley OS is the "how."</p>
+  </section>
+
+  <footer>GALLEY OS ORIGIN FILE — THE TRUE RATIONALE BEHIND THIS BUILD</footer>
+</div>
+
+</div>
+
+<script src="app.js?v=e0003c9739412113b2d12ae9453e65217eae96af" defer></script>
 </body>
 </html>

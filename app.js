@@ -367,6 +367,16 @@ document.getElementById('closeDsBtn').addEventListener('click', ()=>{
   document.getElementById('mainView').style.display = 'block';
   window.scrollTo(0,0);
 });
+document.getElementById('openRationaleBtn').addEventListener('click', ()=>{
+  document.getElementById('mainView').style.display = 'none';
+  document.getElementById('rationaleView').style.display = 'block';
+  window.scrollTo(0,0);
+});
+document.getElementById('closeRationaleBtn').addEventListener('click', ()=>{
+  document.getElementById('rationaleView').style.display = 'none';
+  document.getElementById('mainView').style.display = 'block';
+  window.scrollTo(0,0);
+});
 document.getElementById('resetBtn').addEventListener('click', reset);
 // Tapping anywhere on the LIVE TASKS bar toggles it open/closed — header,
 // hero block, or step rows all count. The one exception is the per-step
