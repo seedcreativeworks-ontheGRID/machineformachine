@@ -121,18 +121,21 @@ ships `api/chat.js` for it and it's free for a project this size. Steps:
    `.github/workflows/deploy-pages.yml` writes this into `public/config.js`
    at deploy time, so the checked-in file never needs hand-editing.
 
-4. **Turn on Pages once, in the repo UI.** Settings → Pages → *Build and
-   deployment* → **Source: GitHub Actions** → Save. (This step can't be
-   done from a workflow file or from here — it's a repo setting.) Use
-   **GitHub Actions**, not "Deploy from a branch" — the branch method is
-   served through a CDN that only purges on a timer (GitHub documents up
-   to ~10 minutes), so every deploy looks stale for a while even though
-   it succeeded. The Actions method actively purges the CDN on each run,
-   so a finished deploy is live immediately.
+4. **Push to `main`** (or run the workflow manually from the Actions
+   tab). `.github/workflows/deploy-pages.yml` publishes `public/` to a
+   `gh-pages` branch, creating it automatically on the first run.
 
-5. **Push to `main`** (or run the workflow manually from the Actions
-   tab). `.github/workflows/deploy-pages.yml` publishes `public/` — the
-   site goes live at `https://<org-or-user>.github.io/<repo>/`.
+5. **Point Pages at that branch, once, in the repo UI.** Settings →
+   Pages → *Build and deployment* → **Source: Deploy from a branch** →
+   **Branch: `gh-pages`, folder: `/ (root)`** → Save. (This step can't be
+   done from a workflow file — it's a repo setting, and `gh-pages` won't
+   exist to pick from that dropdown until step 4 has run at least once.)
+
+   The site then publishes to `https://<org-or-user>.github.io/<repo>/`.
+   GitHub's CDN for a branch-based Pages site purges on a timer rather
+   than on push (documented as up to ~10 minutes), so a change can take
+   a few minutes to show up live even after the workflow succeeds —
+   that's expected, not a failure.
 
 Without step 2–3 configured, the timer itself still works fine on Pages —
 only the Galley AI panel is affected, and it fails closed with "Signal's
