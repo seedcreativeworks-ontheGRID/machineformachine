@@ -30,7 +30,8 @@ let timerHandle = null;
 let audioCtx = null;
 let voiceCuesEnabled = (localStorage.getItem('galleyVoiceCues') !== 'off');
 let cueQueue = [];
-let cuePlayer = null;
+let cueAudioEl = null;
+let lastCueStartAt = 0;
 
 // Spoken step cues are stitched together from pre-baked local mp3 clips in
 // a cloned voice (see scripts/clone-voice.js + scripts/generate-cue-clips.js)
@@ -40,6 +41,23 @@ function slugify(text){
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+// A single, reused <audio> element rather than a fresh `new Audio()` per
+// clip. Several browsers (Safari/iOS especially) only allow playback
+// that's a direct result of a user gesture — but that "unlock" is tied to
+// the element instance, not to each individual play() call, so this same
+// element keeps playing later clips (queued from the ENGAGE click, then
+// re-triggered every 5s from the timer) once it's played once from a
+// real click. A brand-new Audio() from a timer callback doesn't carry
+// that unlock and can silently fail to play at all on those browsers.
+function getCueAudioEl(){
+  if(!cueAudioEl){
+    cueAudioEl = new Audio();
+    cueAudioEl.addEventListener('ended', advanceCueQueue);
+    cueAudioEl.addEventListener('error', advanceCueQueue);
+  }
+  return cueAudioEl;
+}
+
 // Plays a sequence of clip ids back-to-back. A dish/step that was never
 // baked (a custom dish, or a seed dish whose text has since been edited)
 // simply has no matching file — its 'error' event skips straight to the
@@ -47,27 +65,31 @@ function slugify(text){
 // silently omitted rather than crashing or falling back to another voice.
 function playCueQueue(ids){
   if(!voiceCuesEnabled || !ids.length) return;
-  stopCueAudio();
   cueQueue = ids.slice();
   advanceCueQueue();
 }
 
 function advanceCueQueue(){
-  if(!voiceCuesEnabled || cueQueue.length === 0){ cuePlayer = null; return; }
-  const audio = new Audio('audio/cues/' + cueQueue.shift() + '.mp3');
-  audio.addEventListener('ended', advanceCueQueue);
-  audio.addEventListener('error', advanceCueQueue);
-  cuePlayer = audio;
+  if(!voiceCuesEnabled || cueQueue.length === 0) return;
+  const audio = getCueAudioEl();
+  audio.src = 'audio/cues/' + cueQueue.shift() + '.mp3';
+  lastCueStartAt = Date.now();
   audio.play().catch(advanceCueQueue);
 }
 
 function stopCueAudio(){
   cueQueue = [];
-  if(cuePlayer){ cuePlayer.pause(); cuePlayer = null; }
+  if(cueAudioEl) cueAudioEl.pause();
 }
 
 function cueIsPlaying(){
-  return cueQueue.length > 0 || !!(cuePlayer && !cuePlayer.paused && !cuePlayer.ended);
+  // Belt-and-suspenders: if playback has claimed to be "in progress" for
+  // far longer than any single clip could plausibly take, don't let a
+  // missed/never-fired event (a stuck `ended`, a swallowed error) go
+  // silent for the rest of the cook — treat it as free again.
+  const stuck = lastCueStartAt && (Date.now() - lastCueStartAt > 15000);
+  if(stuck) return false;
+  return cueQueue.length > 0 || !!(cueAudioEl && !cueAudioEl.paused && !cueAudioEl.ended);
 }
 
 // Every 5 seconds of cook time, queue up a fresh progress update — a
