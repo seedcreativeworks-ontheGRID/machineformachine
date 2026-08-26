@@ -54,6 +54,10 @@ function fmt(s){
 function renderTracks(){
   const el = document.getElementById('tracks');
   el.innerHTML = '';
+  // Only visible in the desktop "Banded" layout, where CSS `order` groups
+  // dish cards by status; harmless everywhere else (display:none by default).
+  el.insertAdjacentHTML('beforeend', '<div class="band-label band-label-cooking">COOKING NOW</div>');
+  el.insertAdjacentHTML('beforeend', '<div class="band-label band-label-standby">STANDBY</div>');
   const sorted = [...dishes].sort((a,b)=>b.mins - a.mins);
   sorted.forEach((d, idx) => {
     if(!d.manualChecked || d.manualChecked.length !== (d.steps||[]).length){
@@ -598,6 +602,35 @@ if(SpeechRecognitionCtor){
     if(howtoAudio.duration) howtoScrub.value = (howtoAudio.currentTime / howtoAudio.duration) * 100;
   });
   howtoAudio.addEventListener('error', setDisabled);
+})();
+
+/* ===== DESKTOP LAYOUT TOGGLE (Deck / Sticky / Banded) ===== */
+(function setupLayoutToggle(){
+  const mainView = document.getElementById('mainView');
+  const toggle = document.getElementById('layoutToggle');
+  if(!mainView || !toggle) return;
+
+  const VIEWS = ['deck', 'sticky', 'banded'];
+  const STORAGE_KEY = 'galleyLayoutView';
+
+  function applyView(view){
+    if(!VIEWS.includes(view)) view = 'deck';
+    VIEWS.forEach(v => mainView.classList.toggle('view-' + v, v === view));
+    toggle.querySelectorAll('.layout-toggle-btn').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    try{ localStorage.setItem(STORAGE_KEY, view); }catch(e){}
+  }
+
+  toggle.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.layout-toggle-btn');
+    if(!btn) return;
+    applyView(btn.dataset.view);
+  });
+
+  let saved = 'deck';
+  try{ saved = localStorage.getItem(STORAGE_KEY) || 'deck'; }catch(e){}
+  applyView(saved);
 })();
 
 renderTracks();

@@ -15,24 +15,16 @@
   <div class="sticky-header">
     <div class="header-row">
       <div class="eyebrow">YACHT GALLEY OS <span>//</span> SURVIVAL PROTOCOL</div>
-      <button class="ds-link" id="openDsBtn" type="button">⧉ DESIGN SYSTEM</button>
+      <div class="header-actions">
+        <div class="layout-toggle" id="layoutToggle" role="group" aria-label="Layout">
+          <button type="button" class="layout-toggle-btn" data-view="deck">DECK</button>
+          <button type="button" class="layout-toggle-btn" data-view="sticky">STICKY</button>
+          <button type="button" class="layout-toggle-btn" data-view="banded">BANDED</button>
+        </div>
+        <button class="ds-link" id="openDsBtn" type="button">⧉ DESIGN SYSTEM</button>
+      </div>
     </div>
     <div class="title">MULTI-DISH IGNITION SEQUENCER</div>
-
-    <div class="howto-rail hud-panel" id="howtoRail">
-      <button class="howto-badge" id="howtoToggle" type="button" title="Play how-to-use briefing">
-        <svg id="howtoIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"></polygon></svg>
-      </button>
-      <div class="howto-mid">
-        <div class="howto-label">HOW TO USE THIS · 60S BRIEFING</div>
-        <input type="range" class="howto-scrub" id="howtoScrub" min="0" max="100" value="0" step="0.1">
-      </div>
-      <button class="howto-skipback" id="howtoSkipback" type="button" title="Back 10 seconds">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-      </button>
-      <span class="howto-time" id="howtoTime">0:00</span>
-    </div>
-    <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3"></audio>
 
     <div class="panel ai-panel hud-panel">
       <div class="panel-label">GALLEY AI — ASK ABOUT INGREDIENTS, SUBS, ANYTHING</div>
@@ -53,56 +45,73 @@
       </div>
     </div>
 
-    <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
-      <div class="ticker-label" id="tickerToggle">
-        <span class="ticker-live-dot"></span> LIVE TASKS
-        <span class="ticker-caption" id="tickerCaption">— tap to view</span>
-        <div class="ticker-header-actions">
-          <button class="ticker-engage-btn" id="tickerEngageBtn" type="button">ENGAGE</button>
-          <span class="chev">▸</span>
+    <div class="rail-cluster" id="railCluster">
+      <div class="howto-rail hud-panel" id="howtoRail">
+        <button class="howto-badge" id="howtoToggle" type="button" title="Play how-to-use briefing">
+          <svg id="howtoIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"></polygon></svg>
+        </button>
+        <div class="howto-mid">
+          <div class="howto-label">HOW TO USE THIS · 60S BRIEFING</div>
+          <input type="range" class="howto-scrub" id="howtoScrub" min="0" max="100" value="0" step="0.1">
         </div>
+        <button class="howto-skipback" id="howtoSkipback" type="button" title="Back 10 seconds">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </button>
+        <span class="howto-time" id="howtoTime">0:00</span>
       </div>
-      <div class="ticker-content">
-        <div class="ticker-list" id="tickerList"></div>
-      </div>
-    </div>
+      <audio id="howtoAudio" preload="metadata" src="audio/how-to-use.mp3"></audio>
 
-    <div class="master hud-panel"><div class="hud-scan"></div><div class="master-topbar"></div>
-      <div class="master-label">SERVE COUNTDOWN</div>
-      <div class="master-clock-wrap">
-        <svg class="master-ring" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="110" cy="110" r="100" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="4 10" opacity="0.7"/>
-          <circle cx="110" cy="110" r="86" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="1 6" opacity="0.5"/>
-          <circle cx="110" cy="110" r="70" fill="none" stroke="var(--gold)" stroke-width="1" stroke-dasharray="14 4" opacity="0.35"/>
-        </svg>
-        <div class="master-clock" id="masterClock">30:00</div>
-      </div>
-      <div class="master-sub" id="masterSub">STANDBY — SET DISHES AND ENGAGE</div>
-      <div class="master-bar"><div class="master-bar-fill" id="masterBar"></div></div>
-
-      <div class="timeframe-row">
-        <span class="timeframe-label">TIME FRAME</span>
-        <input type="number" id="totalMins" value="30" min="1">
-        <span class="timeframe-unit">MIN</span>
-        <div class="timeframe-presets">
-          <button type="button" class="preset-btn" data-preset="15">15</button>
-          <button type="button" class="preset-btn" data-preset="20">20</button>
-          <button type="button" class="preset-btn active-preset" data-preset="30">30</button>
-          <button type="button" class="preset-btn" data-preset="45">45</button>
-          <button type="button" class="preset-btn" data-preset="60">60</button>
+      <div class="ticker-panel hud-panel hud-amber" id="tickerPanel">
+        <div class="ticker-label" id="tickerToggle">
+          <span class="ticker-live-dot"></span> LIVE TASKS
+          <span class="ticker-caption" id="tickerCaption">— tap to view</span>
+          <div class="ticker-header-actions">
+            <button class="ticker-engage-btn" id="tickerEngageBtn" type="button">ENGAGE</button>
+            <span class="chev">▸</span>
+          </div>
+        </div>
+        <div class="ticker-content">
+          <div class="ticker-list" id="tickerList"></div>
         </div>
       </div>
 
-      <div class="controls">
-        <button class="btn btn-engage" id="engageBtn">ENGAGE</button>
-        <button class="btn btn-reset" id="resetBtn">RESET</button>
+      <div class="master hud-panel"><div class="hud-scan"></div><div class="master-topbar"></div>
+        <div class="master-label">SERVE COUNTDOWN</div>
+        <div class="master-clock-wrap">
+          <svg class="master-ring" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="110" cy="110" r="100" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="4 10" opacity="0.7"/>
+            <circle cx="110" cy="110" r="86" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="1 6" opacity="0.5"/>
+            <circle cx="110" cy="110" r="70" fill="none" stroke="var(--gold)" stroke-width="1" stroke-dasharray="14 4" opacity="0.35"/>
+          </svg>
+          <div class="master-clock" id="masterClock">30:00</div>
+        </div>
+        <div class="master-sub" id="masterSub">STANDBY — SET DISHES AND ENGAGE</div>
+        <div class="master-bar"><div class="master-bar-fill" id="masterBar"></div></div>
+
+        <div class="timeframe-row">
+          <span class="timeframe-label">TIME FRAME</span>
+          <input type="number" id="totalMins" value="30" min="1">
+          <span class="timeframe-unit">MIN</span>
+          <div class="timeframe-presets">
+            <button type="button" class="preset-btn" data-preset="15">15</button>
+            <button type="button" class="preset-btn" data-preset="20">20</button>
+            <button type="button" class="preset-btn active-preset" data-preset="30">30</button>
+            <button type="button" class="preset-btn" data-preset="45">45</button>
+            <button type="button" class="preset-btn" data-preset="60">60</button>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn btn-engage" id="engageBtn">ENGAGE</button>
+          <button class="btn btn-reset" id="resetBtn">RESET</button>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="tracks" id="tracks" style="margin-top:18px;"></div>
 
-  <div class="panel hud-panel">
+  <div class="panel hud-panel" id="addDishPanel">
     <div class="panel-label">ADD DISH</div>
     <div class="setup-row">
       <input type="text" class="name" id="newName" placeholder="Dish name (e.g. Fresh Catch)">
