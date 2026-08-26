@@ -358,15 +358,56 @@
     </ul>
   </section>
 
-  <!-- 06 CURRENT STATE -->
+  <!-- 06 THE THREE COMMAND VIEWS -->
   <section>
     <div class="ds-section-head">
       <span class="ds-section-num">06</span>
+      <span class="ds-section-title">THE THREE COMMAND VIEWS</span>
+      <span class="ds-section-desc">why deck, sticky, and banded exist — not just that they do</span>
+    </div>
+    <p class="ds-lede">A yacht galley isn't one fixed workstation — it's a countertop the chef stands at, a rail they glance at while their hands are elsewhere, and, with the ship close, a screen they need to triage in half a second. One layout can't serve all three. DECK / STICKY / BANDED (toggle, top right) are three different bets on where the chef's eyes and hands actually are, each backed by an established interaction-design principle, not a personal preference.</p>
+
+    <div class="ds-view-grid">
+      <div class="ds-view-card">
+        <div class="ds-view-card-label">DECK — the whole counter</div>
+        <p>Nothing on a yacht behaves like a second monitor. Deck spreads the ignition clock, every dish, Galley AI, and LIVE TASKS across one wide sweep so the chef never changes screens to know the state of the cook — <b>Visibility of System Status</b> <sup><a href="#cite-1">[1]</a></sup> taken literally: state that isn't visible costs a click, and three minutes from serve, a click is time nobody has.</p>
+      </div>
+      <div class="ds-view-card">
+        <div class="ds-view-card-label">STICKY — the pinned reference</div>
+        <p>Once the chef has scrolled down into a recipe's steps or a Galley AI answer, the clock can't scroll away with them. Sticky pins the ignition clock and ENGAGE controls to a rail so they're always the same short reach away — the target-distance logic behind <b>Fitts's Law</b> <sup><a href="#cite-4">[4]</a></sup> — in a pinned-sidebar pattern the chef has already used in a hundred other dashboards without thinking, per <b>Jakob's Law</b> <sup><a href="#cite-5">[5]</a></sup>.</p>
+      </div>
+      <div class="ds-view-card">
+        <div class="ds-view-card-label">BANDED — the triage view</div>
+        <p>With the rescue ship close, there's no time to scroll past a tall header to find out what needs attention. Banded compresses the controls into a compact strip and groups dishes into COOKING NOW vs STANDBY — fewer, sorted options instead of an equal scan of everything, per <b>Hick's Law</b> <sup><a href="#cite-6">[6]</a></sup> — and puts the recipes where eyes land first in the <b>F-shaped scan pattern</b> people already read pages in <sup><a href="#cite-7">[7]</a></sup>.</p>
+      </div>
+    </div>
+
+    <p class="ds-lede" style="margin-top:8px;">Across all three, the goal is the same: minimize what has to be held in working memory while hands are busy with something else <sup><a href="#cite-2">[2]</a></sup><sup><a href="#cite-3">[3]</a></sup>. Secondary controls — the timeframe picker, ingredient lists, the design-system link — stay tucked away until asked for, the same <b>progressive disclosure</b> logic <sup><a href="#cite-8">[8]</a></sup> that keeps a 20-minute countdown from turning into a 20-tab cockpit.</p>
+  </section>
+
+  <!-- 07 CURRENT STATE -->
+  <section>
+    <div class="ds-section-head">
+      <span class="ds-section-num">07</span>
       <span class="ds-section-title">CURRENT STATE</span>
       <span class="ds-section-desc">where the build stands today</span>
     </div>
     <p class="ds-lede" style="margin-bottom:0;">Every piece on this page is live in the app you're using right now — the reverse-scheduling engine, the HUD design system, Galley AI, the ticker, the narration rail, and the three desktop layouts. This page exists so that reasoning stays attached to the product instead of living only in a chat log: the brief above is the actual "why," and everything else in Galley OS is the "how."</p>
   </section>
+
+  <div class="ds-citations">
+    <div class="ds-citations-label">ANNOTATIONS — SOURCES FOR THE HEURISTICS ABOVE</div>
+    <ol>
+      <li id="cite-1"><span class="cite-num">[1]</span><span>Visibility of System Status — Nielsen Norman Group, "10 Usability Heuristics for User Interface Design" — <a href="https://www.nngroup.com/articles/ten-usability-heuristics/" target="_blank" rel="noopener">nngroup.com/articles/ten-usability-heuristics</a></span></li>
+      <li id="cite-2"><span class="cite-num">[2]</span><span>Miller's Law — Laws of UX (Jon Yablonski) — <a href="https://lawsofux.com/millers-law/" target="_blank" rel="noopener">lawsofux.com/millers-law</a></span></li>
+      <li id="cite-3"><span class="cite-num">[3]</span><span>Reducing cognitive load — Nielsen Norman Group, "4 Principles to Reduce Cognitive Load in Forms" — <a href="https://www.nngroup.com/articles/4-principles-reduce-cognitive-load/" target="_blank" rel="noopener">nngroup.com/articles/4-principles-reduce-cognitive-load</a></span></li>
+      <li id="cite-4"><span class="cite-num">[4]</span><span>Fitts's Law — Laws of UX — <a href="https://lawsofux.com/fittss-law/" target="_blank" rel="noopener">lawsofux.com/fittss-law</a></span></li>
+      <li id="cite-5"><span class="cite-num">[5]</span><span>Jakob's Law — Laws of UX — <a href="https://lawsofux.com/jakobs-law/" target="_blank" rel="noopener">lawsofux.com/jakobs-law</a></span></li>
+      <li id="cite-6"><span class="cite-num">[6]</span><span>Hick's Law — Laws of UX — <a href="https://lawsofux.com/hicks-law/" target="_blank" rel="noopener">lawsofux.com/hicks-law</a></span></li>
+      <li id="cite-7"><span class="cite-num">[7]</span><span>F-Shaped Pattern of Reading Web Content — Nielsen Norman Group — <a href="https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content/" target="_blank" rel="noopener">nngroup.com/articles/f-shaped-pattern-reading-web-content</a></span></li>
+      <li id="cite-8"><span class="cite-num">[8]</span><span>Progressive Disclosure — Nielsen Norman Group — <a href="https://www.nngroup.com/articles/progressive-disclosure/" target="_blank" rel="noopener">nngroup.com/articles/progressive-disclosure</a></span></li>
+    </ol>
+  </div>
 
   <footer>GALLEY OS ORIGIN FILE — THE TRUE RATIONALE BEHIND THIS BUILD</footer>
 </div>
