@@ -358,12 +358,18 @@ document.getElementById('closeDsBtn').addEventListener('click', ()=>{
   window.scrollTo(0,0);
 });
 document.getElementById('resetBtn').addEventListener('click', reset);
-document.getElementById('tickerToggle').addEventListener('click', ()=>{
+// Tapping anywhere on the LIVE TASKS bar toggles it open/closed — header,
+// hero block, or step rows all count. The one exception is the per-step
+// check-off control, which owns its own tap (see below) and stops the
+// tap from also toggling the panel.
+document.getElementById('tickerPanel').addEventListener('click', (e)=>{
+  if(e.target.closest('.ticker-check')) return;
   document.getElementById('tickerPanel').classList.toggle('expanded');
 });
 document.getElementById('tickerList').addEventListener('click', (e)=>{
   const check = e.target.closest('.ticker-check');
   if(!check) return;
+  e.stopPropagation();
   const id = parseInt(check.dataset.dishId);
   const i = parseInt(check.dataset.stepIndex);
   const dish = dishes.find(d=>d.id===id);
