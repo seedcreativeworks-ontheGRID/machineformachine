@@ -29,6 +29,7 @@ let running = false;
 let timerHandle = null;
 let audioCtx = null;
 let voiceCuesEnabled = (localStorage.getItem('galleyVoiceCues') !== 'off');
+let lastSpeakAt = 0;
 
 // Spoken step cues use the browser's own text-to-speech (Web Speech API) —
 // there's no way to re-synthesize the exact recorded narration voice from
@@ -39,6 +40,7 @@ function speak(text){
   if(!('speechSynthesis' in window)) return;
   try{
     window.speechSynthesis.cancel();
+    window.speechSynthesis.resume(); // some browsers auto-pause the engine after a period of silence
     const utter = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(v => /natural/i.test(v.name) && v.lang.startsWith('en'))
@@ -46,6 +48,7 @@ function speak(text){
       || voices.find(v => v.lang && v.lang.startsWith('en'))
       || voices[0];
     if(preferred) utter.voice = preferred;
+    lastSpeakAt = Date.now();
     window.speechSynthesis.speak(utter);
   }catch(e){}
 }
@@ -57,7 +60,12 @@ function speak(text){
 function checkVoiceCues(elapsed){
   if(!voiceCuesEnabled) return;
   if(elapsed <= 0 || elapsed % 5 !== 0) return;
-  if('speechSynthesis' in window && window.speechSynthesis.speaking) return;
+  // A handful of browsers can leave `speaking` stuck true indefinitely
+  // (e.g. after a tab loses focus) — if it's been stuck far longer than
+  // any single cue could plausibly take, don't let that silence the loop
+  // forever; speak() below clears it with its own cancel() first.
+  const stuck = lastSpeakAt && (Date.now() - lastSpeakAt > 12000);
+  if('speechSynthesis' in window && window.speechSynthesis.speaking && !stuck) return;
 
   const parts = [];
   const remainingSecs = totalSeconds - elapsed;
@@ -386,6 +394,11 @@ function start(){
   totalSeconds = Math.max(60, parseInt(document.getElementById('totalMins').value||30)*60);
   remaining = totalSeconds;
   running = true;
+  // Speak once here, synchronously inside the ENGAGE click — some browsers
+  // only allow speechSynthesis to be used at all if the first call happens
+  // inside a user gesture; calling it only from the tick() timer later can
+  // leave every future cue silently blocked.
+  speak('Sequence engaged. Audio feedback online.');
   document.getElementById('masterClock').classList.remove('critical');
   renderTracks();
   renderTicker(0);
