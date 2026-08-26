@@ -29,87 +29,91 @@ let running = false;
 let timerHandle = null;
 let audioCtx = null;
 let voiceCuesEnabled = (localStorage.getItem('galleyVoiceCues') !== 'off');
-let lastSpeakAt = 0;
-let currentCueAudio = null;
-let cuePending = false;
-let cueRequestId = 0;
+let cueQueue = [];
+let cuePlayer = null;
 
-// Spoken step cues use a cloned ElevenLabs voice (see scripts/clone-voice.js)
-// served through POST /api/speak, instead of the browser's built-in
-// text-to-speech — this is what makes the cues sound like the actual
-// reference voice instead of a generic system voice.
-function speak(text){
-  if(!voiceCuesEnabled) return;
-  lastSpeakAt = Date.now();
+// Spoken step cues are stitched together from pre-baked local mp3 clips in
+// a cloned voice (see scripts/clone-voice.js + scripts/generate-cue-clips.js)
+// — no live TTS call, no network dependency, no per-cue cost at runtime.
+// Must match the slugify() used in generate-cue-clips.js exactly.
+function slugify(text){
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+// Plays a sequence of clip ids back-to-back. A dish/step that was never
+// baked (a custom dish, or a seed dish whose text has since been edited)
+// simply has no matching file — its 'error' event skips straight to the
+// next id instead of breaking the sequence, so unrecognized text is
+// silently omitted rather than crashing or falling back to another voice.
+function playCueQueue(ids){
+  if(!voiceCuesEnabled || !ids.length) return;
   stopCueAudio();
-  const requestId = ++cueRequestId;
-  cuePending = true;
-  const apiBase = (window.GALLEY_CONFIG && window.GALLEY_CONFIG.apiBase) || '';
-  fetch(apiBase + '/api/speak', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ text }),
-  })
-    .then(res => { if(!res.ok) throw new Error('speak request failed'); return res.blob(); })
-    .then(blob => {
-      cuePending = false;
-      if(requestId !== cueRequestId || !voiceCuesEnabled) return; // superseded by a newer cue, or muted mid-flight
-      const url = URL.createObjectURL(blob);
-      currentCueAudio = new Audio(url);
-      currentCueAudio.play().catch(()=>{});
-    })
-    .catch(()=>{ cuePending = false; }); // voice cues are a nice-to-have — never break the timer over a failed request
+  cueQueue = ids.slice();
+  advanceCueQueue();
 }
 
-function cueIsPlaying(){
-  return !!(currentCueAudio && !currentCueAudio.paused && !currentCueAudio.ended);
-}
-
-function cueBusy(){
-  return cuePending || cueIsPlaying();
+function advanceCueQueue(){
+  if(!voiceCuesEnabled || cueQueue.length === 0){ cuePlayer = null; return; }
+  const audio = new Audio('audio/cues/' + cueQueue.shift() + '.mp3');
+  audio.addEventListener('ended', advanceCueQueue);
+  audio.addEventListener('error', advanceCueQueue);
+  cuePlayer = audio;
+  audio.play().catch(advanceCueQueue);
 }
 
 function stopCueAudio(){
-  if(!currentCueAudio) return;
-  currentCueAudio.pause();
-  URL.revokeObjectURL(currentCueAudio.src);
-  currentCueAudio = null;
+  cueQueue = [];
+  if(cuePlayer){ cuePlayer.pause(); cuePlayer = null; }
 }
 
-// Every 5 seconds of cook time, read out a fresh progress update — a
+function cueIsPlaying(){
+  return cueQueue.length > 0 || !!(cuePlayer && !cuePlayer.paused && !cuePlayer.ended);
+}
+
+// Every 5 seconds of cook time, queue up a fresh progress update — a
 // running feedback loop instead of one-off announcements — covering
 // what's cooking now and what's about to ignite. Skips a cycle if the
-// previous update is still in flight or still being read, rather than
-// cutting it off or piling up overlapping requests.
+// previous update is still playing, rather than cutting it off.
 function checkVoiceCues(elapsed){
   if(!voiceCuesEnabled) return;
   if(elapsed <= 0 || elapsed % 5 !== 0) return;
-  // If playback ever gets stuck (a request that never resolved, a stalled
-  // <audio> element) don't let that silence the loop forever — speak()
-  // below tears down and replaces currentCueAudio regardless.
-  const stuck = lastSpeakAt && (Date.now() - lastSpeakAt > 12000);
-  if(cueBusy() && !stuck) return;
+  if(cueIsPlaying()) return;
 
-  const parts = [];
+  const ids = [];
   const remainingSecs = totalSeconds - elapsed;
-  if(remainingSecs === 300) parts.push('Five minutes to serve');
-  if(remainingSecs === 60) parts.push('One minute to serve');
+  if(remainingSecs === 300) ids.push('five-minutes-to-serve');
+  if(remainingSecs === 60) ids.push('one-minute-to-serve');
 
   dishes.forEach(d=>{
     const dur = d.mins*60;
     const startOffset = Math.max(0, totalSeconds - dur);
+    const dishSlug = slugify(d.name);
     if(elapsed < startOffset){
       const toStart = startOffset - elapsed;
-      if(toStart <= 10) parts.push(`${d.name} ignites in ${toStart} seconds`);
+      if(toStart <= 10){
+        ids.push('dish-'+dishSlug, 'ignites-in', 'num-'+toStart, toStart===1?'second':'seconds');
+      }
     } else if(elapsed < totalSeconds){
-      const cur = currentStepFor(d, elapsed - startOffset);
-      parts.push(`${d.name}: ${cur.text}, ${fmt(cur.remaining)} left`);
+      const dishElapsed = elapsed - startOffset;
+      const steps = d.steps && d.steps.length ? d.steps : [{text:'Cook', seconds:dur}];
+      let cum = 0, stepIdx = 0;
+      for(let i=0;i<steps.length;i++){
+        if(dishElapsed < cum + steps[i].seconds){ stepIdx = i; break; }
+        cum += steps[i].seconds;
+        stepIdx = i;
+      }
+      const cur = currentStepFor(d, dishElapsed);
+      const mm = Math.floor(cur.remaining/60), ss = Math.floor(cur.remaining%60);
+      ids.push('dish-'+dishSlug, `step-${dishSlug}-${stepIdx}`);
+      if(mm > 0) ids.push('num-'+mm, mm===1?'minute':'minutes');
+      if(mm === 0 || ss > 0) ids.push('num-'+ss, ss===1?'second':'seconds');
+      ids.push('left');
     } else {
-      parts.push(`${d.name} is ready`);
+      ids.push('dish-'+dishSlug, 'is-ready');
     }
   });
 
-  if(parts.length) speak(parts.join('. ') + '.');
+  if(ids.length) playCueQueue(ids);
 }
 
 function beep(freq, dur){
@@ -421,7 +425,7 @@ function start(){
   // autoplay of <audio> on a user gesture, so the very first cue has to
   // originate from this click; the recurring tick()-triggered cues that
   // follow are then allowed for the rest of the session.
-  speak('Sequence engaged. Audio feedback online.');
+  playCueQueue(['sequence-engaged']);
   document.getElementById('masterClock').classList.remove('critical');
   renderTracks();
   renderTicker(0);

@@ -11,11 +11,11 @@ const buckets = new Map();
  * hits multiple cold instances can exceed this limit. For real production
  * traffic, swap this for a shared store (e.g. Upstash Redis) — see README.
  */
-export function checkRateLimit(key, maxRequests = MAX_REQUESTS_PER_WINDOW) {
+export function checkRateLimit(key) {
   const now = Date.now();
   const timestamps = (buckets.get(key) || []).filter((ts) => now - ts < WINDOW_MS);
 
-  if (timestamps.length >= maxRequests) {
+  if (timestamps.length >= MAX_REQUESTS_PER_WINDOW) {
     buckets.set(key, timestamps);
     return false;
   }

@@ -149,48 +149,50 @@ with no `ANTHROPIC_API_KEY` set).
 | `ANTHROPIC_API_KEY`  | yes      | —                | Never expose this to the client.            |
 | `ANTHROPIC_MODEL`    | no       | `claude-sonnet-5`| Any current Claude model ID.                |
 | `PORT`               | no       | `3000`           | Only used by the standalone Express server. |
-| `ALLOWED_ORIGINS`    | no       | *(unset = same-origin only)* | Comma-separated list of origins allowed to call `/api/chat` and `/api/speak` cross-origin. Set this to your GitHub Pages URL when splitting frontend/backend across hosts — see "GitHub Pages" above. |
-| `ELEVENLABS_API_KEY` | no       | —                | Enables the LIVE TASKS spoken step cues. Leave unset and the feature just stays silent. Never expose this to the client. |
-| `ELEVENLABS_VOICE_ID`| no       | —                | The cloned voice ID from `scripts/clone-voice.js` (see "Spoken step cues" below). Required alongside `ELEVENLABS_API_KEY` — the cues stay off with only one of the two set. |
-| `ELEVENLABS_MODEL`   | no       | `eleven_turbo_v2_5` | Any current ElevenLabs TTS model ID. |
+| `ALLOWED_ORIGINS`    | no       | *(unset = same-origin only)* | Comma-separated list of origins allowed to call `/api/chat` cross-origin. Set this to your GitHub Pages URL when splitting frontend/backend across hosts — see "GitHub Pages" above. |
 
 `GALLEY_API_BASE_URL` is a separate thing: a **GitHub Actions repo
 variable** (not a runtime env var — the workflow reads it at deploy time
 to generate `public/config.js`), only relevant for the Pages path.
 
+`ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` are **not** runtime env vars
+either — see "Spoken step cues" below.
+
 ## Spoken step cues (LIVE TASKS voice feedback)
 
-While the timer is engaged, the LIVE TASKS panel can read out a progress
+While the timer is engaged, the LIVE TASKS panel reads out a progress
 update every 5 seconds — what's cooking now, how long is left on that step,
-and what's about to ignite — in a specific cloned voice rather than a
-generic browser TTS voice. It's fully optional: with `ELEVENLABS_API_KEY` /
-`ELEVENLABS_VOICE_ID` unset, the 🔊 toggle in LIVE TASKS still renders but
-every cue silently no-ops, same fail-closed behavior as Galley AI without an
-Anthropic key.
+what's about to ignite — in a specific cloned voice. This is entirely
+static: `public/audio/cues/*.mp3` is a library of a few hundred short
+pre-baked clips (numbers, connector words, each seed dish's name and step
+text), and `checkVoiceCues()` in `public/app.js` stitches the right ones
+together at playback time. No live TTS call, no backend involved, no
+per-cue cost or latency at runtime — it works the same on GitHub Pages as
+anywhere else. With no clips present, the 🔊 toggle in LIVE TASKS still
+renders but every cue silently no-ops (a missing file just gets skipped).
 
-To turn it on:
+**The clips still need to be generated once** — this sandbox can't reach
+`api.elevenlabs.io` (same policy block as `elevenlabs.io` generally), so
+neither the voice clone nor the clip bake could be run from here. From a
+machine with real internet access:
 
-1. Get an API key at [elevenlabs.io](https://elevenlabs.io).
-2. **Once**, from a machine with real internet access:
-   ```bash
-   ELEVENLABS_API_KEY=sk_... node scripts/clone-voice.js
-   ```
-   This clones a voice from `scripts/voice-sample.mp3` and prints a
-   `voice_id`. Don't re-run it as part of any automated deploy — every run
-   creates a *new* cloned voice in your account.
-3. Set both `ELEVENLABS_API_KEY` and the printed `ELEVENLABS_VOICE_ID` —
-   in `.env` locally, and as environment variables on wherever the server
-   actually runs (Vercel project settings, etc). On the split-hosting path
-   (GitHub Pages + Vercel), both endpoints live on the same backend, so no
-   extra config beyond what "GitHub Pages" above already describes.
+```bash
+ELEVENLABS_API_KEY=sk_... node scripts/clone-voice.js
+# prints a voice_id — clones a voice from scripts/voice-sample.mp3.
+# Only run this once per voice; re-running creates a *new* cloned voice.
 
-Cost/latency note: each 5-second cue is a real request to ElevenLabs'
-paid API (`server/lib/elevenLabsProxy.js` → `POST /api/speak`), capped at
-300 characters and rate-limited per IP
-(`server/lib/rateLimiter.js`, a higher namespaced limit than `/api/chat`
-since the cadence alone is ~12 requests/minute). A long active cook makes a
-lot of these calls — check ElevenLabs' pricing before leaving this on for
-extended use.
+ELEVENLABS_API_KEY=sk_... ELEVENLABS_VOICE_ID=... node scripts/generate-cue-clips.js
+# bakes every phrase into public/audio/cues/*.mp3 — safe to re-run,
+# skips any clip that already exists.
+```
+
+Since the vocabulary is a fixed set of clips, an arbitrary dish or step a
+user types into the app (anything beyond the 3 seed dishes) has no
+matching clip — `checkVoiceCues()` skips those specific words rather than
+saying nothing at all, so a custom dish still gets the generic numbers/time
+narration, just not its name or step text spoken aloud, unless you rerun
+`generate-cue-clips.js` after adding it to the `SEED_DISHES` list in that
+script.
 
 ## Security notes
 
