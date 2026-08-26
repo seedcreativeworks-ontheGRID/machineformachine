@@ -54,6 +54,10 @@ function fmt(s){
 function renderTracks(){
   const el = document.getElementById('tracks');
   el.innerHTML = '';
+  // Only visible in the desktop "Banded" layout, where CSS `order` groups
+  // dish cards by status; harmless everywhere else (display:none by default).
+  el.insertAdjacentHTML('beforeend', '<div class="band-label band-label-cooking">COOKING NOW</div>');
+  el.insertAdjacentHTML('beforeend', '<div class="band-label band-label-standby">STANDBY</div>');
   const sorted = [...dishes].sort((a,b)=>b.mins - a.mins);
   sorted.forEach((d, idx) => {
     if(!d.manualChecked || d.manualChecked.length !== (d.steps||[]).length){
@@ -317,6 +321,7 @@ function start(){
   document.getElementById('tickerPanel').classList.add('expanded');
   document.getElementById('tickerCaption').textContent = '— sequence live';
   document.getElementById('engageBtn').disabled = true;
+  document.getElementById('tickerEngageBtn').style.display = 'none';
   document.getElementById('totalMins').disabled = true;
   document.querySelectorAll('.preset-btn').forEach(b=> b.disabled = true);
   document.getElementById('addDishBtn').disabled = true;
@@ -328,6 +333,7 @@ function stop(){
   running = false;
   clearInterval(timerHandle);
   document.getElementById('engageBtn').disabled = false;
+  document.getElementById('tickerEngageBtn').style.display = '';
   document.getElementById('totalMins').disabled = false;
   document.querySelectorAll('.preset-btn').forEach(b=> b.disabled = false);
   document.getElementById('addDishBtn').disabled = false;
@@ -347,6 +353,10 @@ function reset(){
 }
 
 document.getElementById('engageBtn').addEventListener('click', start);
+document.getElementById('tickerEngageBtn').addEventListener('click', (e)=>{
+  e.stopPropagation(); // don't also toggle the LIVE TASKS bar open/closed
+  start();
+});
 document.getElementById('openDsBtn').addEventListener('click', ()=>{
   document.getElementById('mainView').style.display = 'none';
   document.getElementById('dsView').style.display = 'block';
@@ -358,12 +368,18 @@ document.getElementById('closeDsBtn').addEventListener('click', ()=>{
   window.scrollTo(0,0);
 });
 document.getElementById('resetBtn').addEventListener('click', reset);
-document.getElementById('tickerToggle').addEventListener('click', ()=>{
+// Tapping anywhere on the LIVE TASKS bar toggles it open/closed — header,
+// hero block, or step rows all count. The one exception is the per-step
+// check-off control, which owns its own tap (see below) and stops the
+// tap from also toggling the panel.
+document.getElementById('tickerPanel').addEventListener('click', (e)=>{
+  if(e.target.closest('.ticker-check')) return;
   document.getElementById('tickerPanel').classList.toggle('expanded');
 });
 document.getElementById('tickerList').addEventListener('click', (e)=>{
   const check = e.target.closest('.ticker-check');
   if(!check) return;
+  e.stopPropagation();
   const id = parseInt(check.dataset.dishId);
   const i = parseInt(check.dataset.stepIndex);
   const dish = dishes.find(d=>d.id===id);
@@ -586,6 +602,35 @@ if(SpeechRecognitionCtor){
     if(howtoAudio.duration) howtoScrub.value = (howtoAudio.currentTime / howtoAudio.duration) * 100;
   });
   howtoAudio.addEventListener('error', setDisabled);
+})();
+
+/* ===== DESKTOP LAYOUT TOGGLE (Deck / Sticky / Banded) ===== */
+(function setupLayoutToggle(){
+  const mainView = document.getElementById('mainView');
+  const toggle = document.getElementById('layoutToggle');
+  if(!mainView || !toggle) return;
+
+  const VIEWS = ['deck', 'sticky', 'banded'];
+  const STORAGE_KEY = 'galleyLayoutView';
+
+  function applyView(view){
+    if(!VIEWS.includes(view)) view = 'deck';
+    VIEWS.forEach(v => mainView.classList.toggle('view-' + v, v === view));
+    toggle.querySelectorAll('.layout-toggle-btn').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    try{ localStorage.setItem(STORAGE_KEY, view); }catch(e){}
+  }
+
+  toggle.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.layout-toggle-btn');
+    if(!btn) return;
+    applyView(btn.dataset.view);
+  });
+
+  let saved = 'deck';
+  try{ saved = localStorage.getItem(STORAGE_KEY) || 'deck'; }catch(e){}
+  applyView(saved);
 })();
 
 renderTracks();

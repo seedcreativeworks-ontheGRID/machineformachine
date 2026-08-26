@@ -83,6 +83,8 @@
   .wrap{ width:100%; max-width:640px; }
 
   .sticky-header{
+    display:flex;
+    flex-direction:column;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -96,6 +98,15 @@
     border-bottom: 1px solid var(--cyan-dim);
     box-shadow: 0 12px 28px -12px rgba(0,0,0,0.75), 0 1px 0 rgba(47,216,255,0.15);
   }
+  /* Explicit stacking order so DOM position can move freely (needed for
+     the desktop layout variants below) without changing today's mobile
+     sequence: rail, then Galley AI, then live tasks, then master clock. */
+  .ai-panel{ order:2; }
+  .rail-cluster{ display:contents; }
+  .howto-rail{ order:1; }
+  #howtoAudio{ order:1; }
+  .ticker-panel{ order:3; }
+  .master{ order:4; }
 
   .header-row{
     display:flex;
@@ -113,11 +124,45 @@
   }
   .eyebrow span{color:var(--active);}
 
-  .ds-link{
+  .header-actions{
     position:absolute;
     right:0;
     top:50%;
     transform: translateY(-50%);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .layout-toggle{
+    display:none;
+    align-items:center;
+    gap:2px;
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    padding:2px;
+    background:#0a1620;
+  }
+  .layout-toggle-btn{
+    font-family:'Share Tech Mono', monospace;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    color:var(--dim);
+    background:none;
+    border:none;
+    border-radius:3px;
+    padding:5px 9px;
+    cursor:pointer;
+    transition: background .2s, color .2s;
+  }
+  .layout-toggle-btn:hover{ color:var(--cyan); }
+  .layout-toggle-btn.active{
+    background: rgba(47,216,255,0.14);
+    color: var(--cyan);
+  }
+
+  .ds-link{
     display:flex;
     align-items:center;
     gap:5px;
@@ -260,6 +305,7 @@
     border-radius: 10px;
     padding: 14px 16px 12px;
     margin-bottom: 12px;
+    cursor:pointer;
   }
   .ticker-label{
     font-family:'Share Tech Mono', monospace;
@@ -285,8 +331,30 @@
     text-transform:none;
     margin-left:2px;
   }
-  .ticker-label .chev{
+  .ticker-header-actions{
     margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .ticker-engage-btn{
+    font-family:'Share Tech Mono', monospace;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.1em;
+    color:#1a0f00;
+    background: linear-gradient(180deg, #ffc44d, var(--gold));
+    border:none;
+    border-radius:4px;
+    padding:6px 12px;
+    cursor:pointer;
+    box-shadow: 0 0 10px rgba(255,176,32,0.4);
+    transition: box-shadow .2s, opacity .2s;
+  }
+  .ticker-engage-btn:hover{ box-shadow: 0 0 14px rgba(255,176,32,0.6); }
+  .ticker-engage-btn:disabled{ opacity:0.4; cursor:not-allowed; box-shadow:none; }
+  .ticker-label .chev{
     font-size:12px;
     color:var(--dim);
     transition: transform .2s;
@@ -568,6 +636,7 @@
 
   /* TRACKS */
   .tracks{ display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .band-label{ display:none; } /* only shown in the desktop Banded layout */
 
   .track{
     background: var(--panel);
@@ -1355,6 +1424,145 @@
     margin-top:60px;
   }
 
+  /* ===== DESKTOP LAYOUT VARIANTS (Deck / Sticky / Banded) =====
+     Below this breakpoint the app is untouched — same single-column
+     stack as always. At and above it, the console spreads across the
+     full width of a wide screen, with a deliberate gutter of open
+     starfield background on both sides (the width itself is capped,
+     and scales with viewport via vw units, so the gutter stays visible
+     rather than shrinking to nothing on a merely-wide-not-huge window). */
+  @media (min-width: 900px){
+    body{ padding: 28px 6vw 60px; }
+    .wrap{ max-width: 1400px; }
+
+    .layout-toggle{ display:flex; }
+
+    #mainView.view-deck,
+    #mainView.view-sticky,
+    #mainView.view-banded{
+      display:grid;
+      column-gap:16px;
+      row-gap:0;
+    }
+    #mainView.view-deck > .sticky-header,
+    #mainView.view-sticky > .sticky-header,
+    #mainView.view-banded > .sticky-header{
+      display:contents;
+      position:static;
+      background:none;
+      margin:0;
+      padding:0;
+      border-bottom:none;
+      box-shadow:none;
+    }
+    /* header-row / title always span the full width, top of the page */
+    #mainView.view-deck .header-row,
+    #mainView.view-sticky .header-row,
+    #mainView.view-banded .header-row{ grid-area: eyebrow; }
+    #mainView.view-deck .title,
+    #mainView.view-sticky .title,
+    #mainView.view-banded .title{ grid-area: titlearea; }
+    #mainView.view-deck #tracks,
+    #mainView.view-sticky #tracks,
+    #mainView.view-banded #tracks{ grid-area: tracks; margin-top:0 !important; }
+    #mainView.view-deck #addDishPanel,
+    #mainView.view-sticky #addDishPanel,
+    #mainView.view-banded #addDishPanel{ grid-area: add; }
+    #mainView.view-deck .note,
+    #mainView.view-sticky .note,
+    #mainView.view-banded .note{ grid-area: note; }
+
+    /* ---- DECK: tracks+add | Galley AI | live tasks+clock rail ---- */
+    #mainView.view-deck{
+      grid-template-columns: 1.15fr 1fr 300px;
+      grid-template-areas:
+        "eyebrow    eyebrow    eyebrow"
+        "titlearea  titlearea  titlearea"
+        "rail       rail       rail"
+        "tracks     ai         ticker"
+        "add        ai         master"
+        "note       note       note";
+    }
+    #mainView.view-deck .rail-cluster{ display:contents; }
+    #mainView.view-deck .howto-rail{ grid-area: rail; }
+    #mainView.view-deck #howtoAudio{ grid-area: rail; }
+    #mainView.view-deck .ticker-panel{ grid-area: ticker; align-self:start; }
+    #mainView.view-deck .master{ grid-area: master; }
+    /* The rail column here is narrower than the ticker header was
+       designed for (full mobile width) — drop the decorative caption
+       and tighten up so LIVE TASKS / ENGAGE / chevron fit on one line. */
+    #mainView.view-deck .ticker-label,
+    #mainView.view-sticky .ticker-label{ flex-wrap:nowrap; }
+    #mainView.view-deck .ticker-caption,
+    #mainView.view-sticky .ticker-caption{ display:none; }
+    #mainView.view-deck .ticker-header-actions,
+    #mainView.view-sticky .ticker-header-actions{ gap:6px; }
+    #mainView.view-deck .ticker-engage-btn,
+    #mainView.view-sticky .ticker-engage-btn{ padding:5px 8px; font-size:9px; }
+    #mainView.view-deck .ai-panel{ grid-area: ai; display:flex; flex-direction:column; }
+    #mainView.view-deck .ai-panel .ai-log{ flex:1; }
+    #mainView.view-deck #tracks{ display:grid; grid-template-columns:1fr; gap:10px; }
+
+    /* ---- STICKY: player+live tasks+clock pinned left, everything else scrolls right ---- */
+    #mainView.view-sticky{
+      grid-template-columns: 300px 1fr;
+      grid-template-areas:
+        "eyebrow    eyebrow"
+        "titlearea  titlearea"
+        "cluster    ai"
+        "cluster    tracks"
+        "cluster    add"
+        "note       note";
+    }
+    #mainView.view-sticky .rail-cluster{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      grid-area: cluster;
+      position:sticky;
+      top:20px;
+      align-self:start;
+    }
+    #mainView.view-sticky #tracks{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+
+    /* ---- BANDED: full-width stack; dishes group by status inside #tracks ---- */
+    #mainView.view-banded{
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "eyebrow"
+        "titlearea"
+        "rail"
+        "ai"
+        "ticker"
+        "master"
+        "tracks"
+        "add"
+        "note";
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    #mainView.view-banded .rail-cluster{ display:contents; }
+    #mainView.view-banded .howto-rail{ grid-area: rail; }
+    #mainView.view-banded #howtoAudio{ grid-area: rail; }
+    #mainView.view-banded .ticker-panel{ grid-area: ticker; }
+    #mainView.view-banded .master{ grid-area: master; }
+    #mainView.view-banded .ai-panel{ grid-area: ai; }
+    #mainView.view-banded #tracks{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    #mainView.view-banded #tracks .track.active{ grid-column: 1 / -1; order:-1; }
+    #mainView.view-banded #tracks .track:not(.active){ order:1; }
+    #mainView.view-banded .band-label{
+      display:block;
+      grid-column: 1 / -1;
+      font-family:'Share Tech Mono', monospace;
+      font-size:11px;
+      letter-spacing:0.18em;
+      color:var(--dim);
+      padding-top:4px;
+    }
+    #mainView.view-banded .band-label-cooking{ order:-2; color:var(--active); }
+    #mainView.view-banded .band-label-standby{ order:0; }
+  }
+
   /* ===== MOBILE RESPONSIVE FIXES ===== */
   html, body{ overflow-x: hidden; }
 
@@ -1364,7 +1572,7 @@
 
     /* Header: stack the design-system link below the eyebrow instead of overlapping it */
     .header-row{ flex-direction: column; gap:8px; }
-    .ds-link{
+    .header-actions{
       position: static;
       transform: none;
       align-self: center;
