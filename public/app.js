@@ -30,42 +30,65 @@ let timerHandle = null;
 let audioCtx = null;
 let voiceCuesEnabled = (localStorage.getItem('galleyVoiceCues') !== 'off');
 let lastSpeakAt = 0;
+let currentCueAudio = null;
+let cuePending = false;
+let cueRequestId = 0;
 
-// Spoken step cues use the browser's own text-to-speech (Web Speech API) —
-// there's no way to re-synthesize the exact recorded narration voice from
-// the browser, so this picks the closest natural-sounding voice available
-// instead and announces each dish's step out loud as it comes up.
+// Spoken step cues use a cloned ElevenLabs voice (see scripts/clone-voice.js)
+// served through POST /api/speak, instead of the browser's built-in
+// text-to-speech — this is what makes the cues sound like the actual
+// reference voice instead of a generic system voice.
 function speak(text){
   if(!voiceCuesEnabled) return;
-  if(!('speechSynthesis' in window)) return;
-  try{
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.resume(); // some browsers auto-pause the engine after a period of silence
-    const utter = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v => /natural/i.test(v.name) && v.lang.startsWith('en'))
-      || voices.find(v => v.lang === 'en-US')
-      || voices.find(v => v.lang && v.lang.startsWith('en'))
-      || voices[0];
-    if(preferred) utter.voice = preferred;
-    lastSpeakAt = Date.now();
-    window.speechSynthesis.speak(utter);
-  }catch(e){}
+  lastSpeakAt = Date.now();
+  stopCueAudio();
+  const requestId = ++cueRequestId;
+  cuePending = true;
+  const apiBase = (window.GALLEY_CONFIG && window.GALLEY_CONFIG.apiBase) || '';
+  fetch(apiBase + '/api/speak', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
+    .then(res => { if(!res.ok) throw new Error('speak request failed'); return res.blob(); })
+    .then(blob => {
+      cuePending = false;
+      if(requestId !== cueRequestId || !voiceCuesEnabled) return; // superseded by a newer cue, or muted mid-flight
+      const url = URL.createObjectURL(blob);
+      currentCueAudio = new Audio(url);
+      currentCueAudio.play().catch(()=>{});
+    })
+    .catch(()=>{ cuePending = false; }); // voice cues are a nice-to-have — never break the timer over a failed request
+}
+
+function cueIsPlaying(){
+  return !!(currentCueAudio && !currentCueAudio.paused && !currentCueAudio.ended);
+}
+
+function cueBusy(){
+  return cuePending || cueIsPlaying();
+}
+
+function stopCueAudio(){
+  if(!currentCueAudio) return;
+  currentCueAudio.pause();
+  URL.revokeObjectURL(currentCueAudio.src);
+  currentCueAudio = null;
 }
 
 // Every 5 seconds of cook time, read out a fresh progress update — a
 // running feedback loop instead of one-off announcements — covering
 // what's cooking now and what's about to ignite. Skips a cycle if the
-// previous update is still being read, rather than cutting it off.
+// previous update is still in flight or still being read, rather than
+// cutting it off or piling up overlapping requests.
 function checkVoiceCues(elapsed){
   if(!voiceCuesEnabled) return;
   if(elapsed <= 0 || elapsed % 5 !== 0) return;
-  // A handful of browsers can leave `speaking` stuck true indefinitely
-  // (e.g. after a tab loses focus) — if it's been stuck far longer than
-  // any single cue could plausibly take, don't let that silence the loop
-  // forever; speak() below clears it with its own cancel() first.
+  // If playback ever gets stuck (a request that never resolved, a stalled
+  // <audio> element) don't let that silence the loop forever — speak()
+  // below tears down and replaces currentCueAudio regardless.
   const stuck = lastSpeakAt && (Date.now() - lastSpeakAt > 12000);
-  if('speechSynthesis' in window && window.speechSynthesis.speaking && !stuck) return;
+  if(cueBusy() && !stuck) return;
 
   const parts = [];
   const remainingSecs = totalSeconds - elapsed;
@@ -394,10 +417,10 @@ function start(){
   totalSeconds = Math.max(60, parseInt(document.getElementById('totalMins').value||30)*60);
   remaining = totalSeconds;
   running = true;
-  // Speak once here, synchronously inside the ENGAGE click — some browsers
-  // only allow speechSynthesis to be used at all if the first call happens
-  // inside a user gesture; calling it only from the tick() timer later can
-  // leave every future cue silently blocked.
+  // Speak once here, inside the ENGAGE click itself — browsers gate
+  // autoplay of <audio> on a user gesture, so the very first cue has to
+  // originate from this click; the recurring tick()-triggered cues that
+  // follow are then allowed for the rest of the session.
   speak('Sequence engaged. Audio feedback online.');
   document.getElementById('masterClock').classList.remove('critical');
   renderTracks();
@@ -415,7 +438,7 @@ function start(){
 
 function stop(){
   running = false;
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  stopCueAudio();
   clearInterval(timerHandle);
   document.getElementById('engageBtn').disabled = false;
   document.getElementById('tickerEngageBtn').style.display = '';
@@ -454,7 +477,7 @@ document.getElementById('tickerEngageBtn').addEventListener('click', (e)=>{
     e.stopPropagation(); // don't also toggle the LIVE TASKS bar open/closed
     voiceCuesEnabled = !voiceCuesEnabled;
     localStorage.setItem('galleyVoiceCues', voiceCuesEnabled ? 'on' : 'off');
-    if(!voiceCuesEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    if(!voiceCuesEnabled) stopCueAudio();
     render();
   });
   render();
