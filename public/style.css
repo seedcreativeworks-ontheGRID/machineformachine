@@ -1642,7 +1642,7 @@
     #mainView.view-banded .howto-rail{ grid-area: rail; }
     #mainView.view-banded #howtoAudio{ grid-area: rail; }
     #mainView.view-banded .ticker-panel{ grid-area: ticker; align-self:start; }
-    #mainView.view-banded .master{ grid-area: master; }
+    #mainView.view-banded .master{ grid-area: master; align-self:start; height:fit-content; }
     #mainView.view-banded .ai-panel{ grid-area: ai; display:flex; flex-direction:column; }
     #mainView.view-banded .ai-panel .ai-log{ flex:1; min-height:0; }
     #mainView.view-banded #tracks{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
