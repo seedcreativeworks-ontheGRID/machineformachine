@@ -29,64 +29,91 @@ let running = false;
 let timerHandle = null;
 let audioCtx = null;
 let voiceCuesEnabled = (localStorage.getItem('galleyVoiceCues') !== 'off');
-let lastSpeakAt = 0;
+let cueQueue = [];
+let cuePlayer = null;
 
-// Spoken step cues use the browser's own text-to-speech (Web Speech API) —
-// there's no way to re-synthesize the exact recorded narration voice from
-// the browser, so this picks the closest natural-sounding voice available
-// instead and announces each dish's step out loud as it comes up.
-function speak(text){
-  if(!voiceCuesEnabled) return;
-  if(!('speechSynthesis' in window)) return;
-  try{
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.resume(); // some browsers auto-pause the engine after a period of silence
-    const utter = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v => /natural/i.test(v.name) && v.lang.startsWith('en'))
-      || voices.find(v => v.lang === 'en-US')
-      || voices.find(v => v.lang && v.lang.startsWith('en'))
-      || voices[0];
-    if(preferred) utter.voice = preferred;
-    lastSpeakAt = Date.now();
-    window.speechSynthesis.speak(utter);
-  }catch(e){}
+// Spoken step cues are stitched together from pre-baked local mp3 clips in
+// a cloned voice (see scripts/clone-voice.js + scripts/generate-cue-clips.js)
+// — no live TTS call, no network dependency, no per-cue cost at runtime.
+// Must match the slugify() used in generate-cue-clips.js exactly.
+function slugify(text){
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-// Every 5 seconds of cook time, read out a fresh progress update — a
+// Plays a sequence of clip ids back-to-back. A dish/step that was never
+// baked (a custom dish, or a seed dish whose text has since been edited)
+// simply has no matching file — its 'error' event skips straight to the
+// next id instead of breaking the sequence, so unrecognized text is
+// silently omitted rather than crashing or falling back to another voice.
+function playCueQueue(ids){
+  if(!voiceCuesEnabled || !ids.length) return;
+  stopCueAudio();
+  cueQueue = ids.slice();
+  advanceCueQueue();
+}
+
+function advanceCueQueue(){
+  if(!voiceCuesEnabled || cueQueue.length === 0){ cuePlayer = null; return; }
+  const audio = new Audio('audio/cues/' + cueQueue.shift() + '.mp3');
+  audio.addEventListener('ended', advanceCueQueue);
+  audio.addEventListener('error', advanceCueQueue);
+  cuePlayer = audio;
+  audio.play().catch(advanceCueQueue);
+}
+
+function stopCueAudio(){
+  cueQueue = [];
+  if(cuePlayer){ cuePlayer.pause(); cuePlayer = null; }
+}
+
+function cueIsPlaying(){
+  return cueQueue.length > 0 || !!(cuePlayer && !cuePlayer.paused && !cuePlayer.ended);
+}
+
+// Every 5 seconds of cook time, queue up a fresh progress update — a
 // running feedback loop instead of one-off announcements — covering
 // what's cooking now and what's about to ignite. Skips a cycle if the
-// previous update is still being read, rather than cutting it off.
+// previous update is still playing, rather than cutting it off.
 function checkVoiceCues(elapsed){
   if(!voiceCuesEnabled) return;
   if(elapsed <= 0 || elapsed % 5 !== 0) return;
-  // A handful of browsers can leave `speaking` stuck true indefinitely
-  // (e.g. after a tab loses focus) — if it's been stuck far longer than
-  // any single cue could plausibly take, don't let that silence the loop
-  // forever; speak() below clears it with its own cancel() first.
-  const stuck = lastSpeakAt && (Date.now() - lastSpeakAt > 12000);
-  if('speechSynthesis' in window && window.speechSynthesis.speaking && !stuck) return;
+  if(cueIsPlaying()) return;
 
-  const parts = [];
+  const ids = [];
   const remainingSecs = totalSeconds - elapsed;
-  if(remainingSecs === 300) parts.push('Five minutes to serve');
-  if(remainingSecs === 60) parts.push('One minute to serve');
+  if(remainingSecs === 300) ids.push('five-minutes-to-serve');
+  if(remainingSecs === 60) ids.push('one-minute-to-serve');
 
   dishes.forEach(d=>{
     const dur = d.mins*60;
     const startOffset = Math.max(0, totalSeconds - dur);
+    const dishSlug = slugify(d.name);
     if(elapsed < startOffset){
       const toStart = startOffset - elapsed;
-      if(toStart <= 10) parts.push(`${d.name} ignites in ${toStart} seconds`);
+      if(toStart <= 10){
+        ids.push('dish-'+dishSlug, 'ignites-in', 'num-'+toStart, toStart===1?'second':'seconds');
+      }
     } else if(elapsed < totalSeconds){
-      const cur = currentStepFor(d, elapsed - startOffset);
-      parts.push(`${d.name}: ${cur.text}, ${fmt(cur.remaining)} left`);
+      const dishElapsed = elapsed - startOffset;
+      const steps = d.steps && d.steps.length ? d.steps : [{text:'Cook', seconds:dur}];
+      let cum = 0, stepIdx = 0;
+      for(let i=0;i<steps.length;i++){
+        if(dishElapsed < cum + steps[i].seconds){ stepIdx = i; break; }
+        cum += steps[i].seconds;
+        stepIdx = i;
+      }
+      const cur = currentStepFor(d, dishElapsed);
+      const mm = Math.floor(cur.remaining/60), ss = Math.floor(cur.remaining%60);
+      ids.push('dish-'+dishSlug, `step-${dishSlug}-${stepIdx}`);
+      if(mm > 0) ids.push('num-'+mm, mm===1?'minute':'minutes');
+      if(mm === 0 || ss > 0) ids.push('num-'+ss, ss===1?'second':'seconds');
+      ids.push('left');
     } else {
-      parts.push(`${d.name} is ready`);
+      ids.push('dish-'+dishSlug, 'is-ready');
     }
   });
 
-  if(parts.length) speak(parts.join('. ') + '.');
+  if(ids.length) playCueQueue(ids);
 }
 
 function beep(freq, dur){
@@ -394,11 +421,11 @@ function start(){
   totalSeconds = Math.max(60, parseInt(document.getElementById('totalMins').value||30)*60);
   remaining = totalSeconds;
   running = true;
-  // Speak once here, synchronously inside the ENGAGE click — some browsers
-  // only allow speechSynthesis to be used at all if the first call happens
-  // inside a user gesture; calling it only from the tick() timer later can
-  // leave every future cue silently blocked.
-  speak('Sequence engaged. Audio feedback online.');
+  // Speak once here, inside the ENGAGE click itself — browsers gate
+  // autoplay of <audio> on a user gesture, so the very first cue has to
+  // originate from this click; the recurring tick()-triggered cues that
+  // follow are then allowed for the rest of the session.
+  playCueQueue(['sequence-engaged']);
   document.getElementById('masterClock').classList.remove('critical');
   renderTracks();
   renderTicker(0);
@@ -415,7 +442,7 @@ function start(){
 
 function stop(){
   running = false;
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  stopCueAudio();
   clearInterval(timerHandle);
   document.getElementById('engageBtn').disabled = false;
   document.getElementById('tickerEngageBtn').style.display = '';
@@ -454,7 +481,7 @@ document.getElementById('tickerEngageBtn').addEventListener('click', (e)=>{
     e.stopPropagation(); // don't also toggle the LIVE TASKS bar open/closed
     voiceCuesEnabled = !voiceCuesEnabled;
     localStorage.setItem('galleyVoiceCues', voiceCuesEnabled ? 'on' : 'off');
-    if(!voiceCuesEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    if(!voiceCuesEnabled) stopCueAudio();
     render();
   });
   render();
