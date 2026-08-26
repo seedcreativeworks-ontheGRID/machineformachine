@@ -28,6 +28,57 @@ let remaining = totalSeconds;
 let running = false;
 let timerHandle = null;
 let audioCtx = null;
+let voiceCuesEnabled = (localStorage.getItem('galleyVoiceCues') !== 'off');
+let announcedMilestones = new Set();
+
+// Spoken step cues use the browser's own text-to-speech (Web Speech API) —
+// there's no way to re-synthesize the exact recorded narration voice from
+// the browser, so this picks the closest natural-sounding voice available
+// instead and announces each dish's step out loud as it comes up.
+function speak(text){
+  if(!voiceCuesEnabled) return;
+  if(!('speechSynthesis' in window)) return;
+  try{
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => /natural/i.test(v.name) && v.lang.startsWith('en'))
+      || voices.find(v => v.lang === 'en-US')
+      || voices.find(v => v.lang && v.lang.startsWith('en'))
+      || voices[0];
+    if(preferred) utter.voice = preferred;
+    window.speechSynthesis.speak(utter);
+  }catch(e){}
+}
+
+function checkVoiceCues(elapsed){
+  if(!voiceCuesEnabled) return;
+  const remainingSecs = totalSeconds - elapsed;
+  [300, 60].forEach(mark=>{
+    if(remainingSecs === mark && !announcedMilestones.has(mark)){
+      announcedMilestones.add(mark);
+      speak(mark === 300 ? 'Five minutes to serve.' : 'One minute to serve.');
+    }
+  });
+  dishes.forEach(d=>{
+    const dur = d.mins*60;
+    const startOffset = Math.max(0, totalSeconds - dur);
+    if(elapsed < startOffset || elapsed >= totalSeconds) return;
+    const dishElapsed = elapsed - startOffset;
+    const steps = d.steps && d.steps.length ? d.steps : [{text:'Cook', seconds:dur}];
+    let cum = 0, idx = 0;
+    for(let i=0;i<steps.length;i++){
+      if(dishElapsed < cum + steps[i].seconds){ idx = i; break; }
+      cum += steps[i].seconds;
+      idx = i;
+    }
+    if(d._lastAnnouncedStep === undefined) d._lastAnnouncedStep = -1;
+    if(idx !== d._lastAnnouncedStep){
+      d._lastAnnouncedStep = idx;
+      speak(`${d.name}: ${steps[idx].text}`);
+    }
+  });
+}
 
 function beep(freq, dur){
   try{
@@ -111,6 +162,21 @@ function renderTracks(){
     `;
     el.appendChild(div);
   });
+  // Sticky view lays dishes out 2-up — an odd dish count leaves one grid
+  // cell empty. Fill it with a shortcut into the add-dish panel instead of
+  // leaving a visible gap. Hidden by CSS everywhere except .view-sticky.
+  if(sorted.length % 2 === 1){
+    const addTile = document.createElement('button');
+    addTile.type = 'button';
+    addTile.className = 'sticky-add-tile';
+    addTile.innerHTML = `<span class="sticky-add-icon">+</span><span class="sticky-add-label">ADD ANOTHER DISH</span>`;
+    addTile.addEventListener('click', ()=>{
+      document.getElementById('addDishPanel').scrollIntoView({behavior:'smooth', block:'center'});
+      const nameInput = document.getElementById('newName');
+      if(nameInput) nameInput.focus();
+    });
+    el.appendChild(addTile);
+  }
   document.querySelectorAll('.track-remove').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -139,6 +205,7 @@ function renderTracks(){
       dish.manualChecked[i] = !dish.manualChecked[i];
       li.classList.toggle('manual-done', dish.manualChecked[i]);
       li.querySelector('.step-check').textContent = dish.manualChecked[i] ? '☑' : '☐';
+      renderTicker(totalSeconds - remaining);
     });
   });
   document.querySelectorAll('.ingredients-toggle').forEach(btn=>{
@@ -209,26 +276,28 @@ function renderTicker(elapsed){
       urgent = false;
     }
 
+    // Every step gets the same toggleable checkbox the recipe card uses
+    // (driven by d.manualChecked, independent of the timer) — the timing
+    // status (upcoming/current/done) only changes styling and the time
+    // readout, never whether the step can be checked off.
     let cum = 0;
     const stepsHtml = steps.map((s,i)=>{
       const stepStart = cum, stepEnd = cum + s.seconds;
       cum = stepEnd;
-      let cls, mark, extra;
-      const durTag = `<span class="step-duration">${fmt(s.seconds)}</span>`;
-      if(dishElapsed < 0){
-        cls = 'upcoming'; mark = '○'; extra = durTag;
-      } else if(dishElapsed >= stepEnd){
-        cls = 'done'; mark = '✓'; extra = durTag;
-      } else if(dishElapsed >= stepStart && dishElapsed < stepEnd){
+      const checked = d.manualChecked && d.manualChecked[i];
+      const mark = `<span class="mark ticker-check${checked ? ' checked' : ''}" data-dish-id="${d.id}" data-step-index="${i}">${checked ? '☑' : '☐'}</span>`;
+      let cls, extra;
+      if(dishElapsed >= stepStart && dishElapsed < stepEnd){
         cls = 'current';
-        const checked = d.manualChecked && d.manualChecked[i];
-        mark = `<span class="mark ticker-check${checked ? ' checked' : ''}" data-dish-id="${d.id}" data-step-index="${i}">${checked ? '☑' : '☐'}</span>`;
         extra = `<span class="step-countdown">${fmt(stepEnd - dishElapsed)}</span>`;
-        return `<li class="${cls}">${mark}<span class="step-text-inline">${s.text}</span>${extra}</li>`;
+      } else if(dishElapsed >= stepEnd){
+        cls = 'done';
+        extra = `<span class="step-duration">${fmt(s.seconds)}</span>`;
       } else {
-        cls = 'upcoming'; mark = '○'; extra = durTag;
+        cls = 'upcoming';
+        extra = `<span class="step-duration">${fmt(s.seconds)}</span>`;
       }
-      return `<li class="${cls}"><span class="mark">${mark}</span><span class="step-text-inline">${s.text}</span>${extra}</li>`;
+      return `<li class="${cls}">${mark}<span class="step-text-inline">${s.text}</span>${extra}</li>`;
     }).join('');
 
     return `<div class="ticker-row ${rowClass}">
@@ -258,6 +327,7 @@ function tick(){
   mc.textContent = fmt(remaining);
   document.getElementById('masterBar').style.width = (100*elapsed/totalSeconds)+'%';
   renderTicker(elapsed);
+  checkVoiceCues(elapsed);
 
   if(remaining <= 30 && remaining > 0){
     mc.classList.add('critical');
@@ -315,6 +385,8 @@ function start(){
   totalSeconds = Math.max(60, parseInt(document.getElementById('totalMins').value||30)*60);
   remaining = totalSeconds;
   running = true;
+  announcedMilestones = new Set();
+  dishes.forEach(d=> d._lastAnnouncedStep = -1);
   document.getElementById('masterClock').classList.remove('critical');
   renderTracks();
   renderTicker(0);
@@ -331,6 +403,7 @@ function start(){
 
 function stop(){
   running = false;
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
   clearInterval(timerHandle);
   document.getElementById('engageBtn').disabled = false;
   document.getElementById('tickerEngageBtn').style.display = '';
@@ -357,6 +430,23 @@ document.getElementById('tickerEngageBtn').addEventListener('click', (e)=>{
   e.stopPropagation(); // don't also toggle the LIVE TASKS bar open/closed
   start();
 });
+(function setupVoiceCueToggle(){
+  const btn = document.getElementById('voiceCueBtn');
+  if(!btn) return;
+  function render(){
+    btn.textContent = voiceCuesEnabled ? '🔊' : '🔇';
+    btn.classList.toggle('muted', !voiceCuesEnabled);
+    btn.title = voiceCuesEnabled ? 'Spoken step cues: on' : 'Spoken step cues: off';
+  }
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation(); // don't also toggle the LIVE TASKS bar open/closed
+    voiceCuesEnabled = !voiceCuesEnabled;
+    localStorage.setItem('galleyVoiceCues', voiceCuesEnabled ? 'on' : 'off');
+    if(!voiceCuesEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    render();
+  });
+  render();
+})();
 document.getElementById('openDsBtn').addEventListener('click', ()=>{
   document.getElementById('mainView').style.display = 'none';
   document.getElementById('dsView').style.display = 'block';
