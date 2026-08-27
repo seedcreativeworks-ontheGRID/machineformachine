@@ -544,7 +544,9 @@
     gap:8px;
     padding:6px 8px;
     border-radius:6px;
+    cursor:pointer;
   }
+  .ticker-steps li:hover{ background: rgba(255,255,255,0.04); }
   .ticker-steps li .mark{
     font-family:'Share Tech Mono', monospace;
     font-size:12px;
