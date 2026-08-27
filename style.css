@@ -608,13 +608,90 @@
     background: linear-gradient(90deg, var(--cyan), var(--active), var(--critical));
     opacity:0.7;
   }
-  .master-label{
+  /* CHIP STRIP — SERVE + every dish, always visible. Spotlighting below
+     demotes visual weight; it never removes a number from view. */
+  .chip-strip{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding: 12px 4px 16px;
+  }
+  .chip{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    border:1px solid var(--panel-line);
+    border-radius:6px;
+    padding:6px 10px;
+    background:#050d16;
+  }
+  .chip.is-spotlit{ border-color: rgba(255,176,32,0.5); background: rgba(255,176,32,0.06); }
+  .chip-dot{ width:6px; height:6px; border-radius:50%; flex-shrink:0; background: #365a70; }
+  .chip.is-live .chip-dot{ background:var(--cyan); box-shadow:0 0 6px var(--cyan); animation: blink 1.4s ease-in-out infinite; }
+  .chip.is-active .chip-dot{ background:var(--active); box-shadow:0 0 6px var(--active); animation: blink 0.9s ease-in-out infinite; }
+  .chip.is-done .chip-dot{ background:var(--done); box-shadow:none; animation:none; }
+  .chip-label{
+    font-family:'Share Tech Mono', monospace;
+    font-size:8.5px;
+    letter-spacing:0.06em;
+    color:var(--dim);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .chip-num{
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    color:var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip.is-live .chip-num{ color:var(--cyan); }
+  .chip.is-active .chip-num{ color:var(--active); }
+  .chip.is-done .chip-num{ color:var(--done); font-size:10.5px; letter-spacing:0.06em; }
+
+  /* SPOTLIGHT — the single most urgent number: whichever dish's current
+     step or ignition countdown is closest to zero, or SERVE when nothing
+     else is. Color signals role, motion signals "this is actually live." */
+  @keyframes cyanpulse{
+    0%,100%{ box-shadow: 0 0 0 rgba(47,216,255,0); }
+    50%{ box-shadow: 0 0 18px rgba(47,216,255,0.22); }
+  }
+  .spotlight{
+    border:1px solid var(--panel-line);
+    border-radius:10px;
+    padding: 14px 16px 16px;
+    text-align:center;
+    margin-bottom:4px;
+    transition: border-color .3s;
+  }
+  .spotlight.is-active{ border-color: rgba(255,176,32,0.4); animation: pulseglow 2s ease-in-out infinite; }
+  .spotlight.is-cool{ border-color: rgba(47,216,255,0.3); animation: cyanpulse 2.6s ease-in-out infinite; }
+  .spotlight.is-critical{ border-color: rgba(255,59,59,0.5); animation: urgentpulse 1s ease-in-out infinite; }
+  .spot-kicker{
+    display:flex; align-items:center; justify-content:center; gap:7px;
     font-family:'Share Tech Mono', monospace;
     font-size:11px;
-    letter-spacing:0.2em;
+    letter-spacing:0.16em;
+    color: var(--cyan);
+    margin-bottom:6px;
+  }
+  .spotlight.is-active .spot-kicker{ color: var(--active); }
+  .spotlight.is-critical .spot-kicker{ color: var(--critical); }
+  .spot-live-dot{ width:6px; height:6px; border-radius:50%; background:var(--cyan); box-shadow:0 0 6px var(--cyan); animation: blink 1.6s ease-in-out infinite; }
+  .spot-live-dot.is-active{ background:var(--active); box-shadow:0 0 6px var(--active); animation-duration: 0.9s; }
+  .spot-dish{
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
     color:var(--dim);
-    text-align:center;
-    margin-bottom:8px;
+    letter-spacing:0.03em;
+    margin-bottom:2px;
+  }
+  .spot-text{
+    font-size:14px;
+    color:var(--ink);
+    line-height:1.4;
+    max-width:480px;
+    margin:0 auto 4px;
   }
   .master-clock{
     font-family:'Orbitron', sans-serif;
