@@ -80,14 +80,23 @@
           </div>
         </div>
 
-        <div class="master-label">SERVE COUNTDOWN</div>
-        <div class="master-clock-wrap">
-          <svg class="master-ring" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="110" cy="110" r="100" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="4 10" opacity="0.7"/>
-            <circle cx="110" cy="110" r="86" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="1 6" opacity="0.5"/>
-            <circle cx="110" cy="110" r="70" fill="none" stroke="var(--gold)" stroke-width="1" stroke-dasharray="14 4" opacity="0.35"/>
-          </svg>
-          <div class="master-clock" id="masterClock">30:00</div>
+        <div class="chip-strip" id="chipStrip"></div>
+
+        <div class="spotlight" id="spotlight">
+          <div class="spot-kicker" id="spotKicker">
+            <span class="spot-live-dot" id="spotDot"></span>
+            <span id="spotKickerText">SERVE COUNTDOWN</span>
+          </div>
+          <div class="spot-dish" id="spotDish" style="display:none;"></div>
+          <div class="spot-text" id="spotText" style="display:none;"></div>
+          <div class="master-clock-wrap">
+            <svg class="master-ring" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="110" cy="110" r="100" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="4 10" opacity="0.7"/>
+              <circle cx="110" cy="110" r="86" fill="none" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="1 6" opacity="0.5"/>
+              <circle cx="110" cy="110" r="70" fill="none" stroke="var(--gold)" stroke-width="1" stroke-dasharray="14 4" opacity="0.35"/>
+            </svg>
+            <div class="master-clock" id="masterClock">30:00</div>
+          </div>
         </div>
         <div class="master-sub" id="masterSub">STANDBY — SET DISHES AND ENGAGE</div>
         <div class="master-bar"><div class="master-bar-fill" id="masterBar"></div></div>

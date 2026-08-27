@@ -242,6 +242,7 @@ function renderTracks(){
       dishes = dishes.filter(d=>d.id!==id);
       renderTracks();
       renderTicker(0);
+      renderSpotlightAndChips(0);
     });
   });
   document.querySelectorAll('.track-collapse-btn').forEach(btn=>{
@@ -377,19 +378,124 @@ function renderTicker(elapsed){
   }).join('');
 }
 
+// Picks whichever single number is closest to zero across every dish's
+// current step and every standby dish's ignition countdown — the same
+// live ranking reviewed in the Spotlight + Motion hybrid. Returns null
+// when nothing qualifies (not running, or every dish is done), which
+// renderSpotlight() reads as "fall back to SERVE."
+function currentSpotlightPick(elapsed){
+  if(!running) return null;
+  let best = null;
+  dishes.forEach(d=>{
+    const dur = d.mins*60;
+    const startOffset = Math.max(0, totalSeconds - dur);
+    if(elapsed < startOffset){
+      const toStart = startOffset - elapsed;
+      if(!best || toStart < best.secs){
+        const firstStep = d.steps && d.steps[0] ? d.steps[0].text : 'Cook';
+        best = { kind:'standby', dish:d, text:'First up: '+firstStep, secs:toStart };
+      }
+    } else if(elapsed < totalSeconds){
+      const cur = currentStepFor(d, elapsed - startOffset);
+      if(!best || cur.remaining < best.secs){
+        best = { kind:'active', dish:d, text:cur.text, secs:cur.remaining };
+      }
+    }
+  });
+  return best;
+}
+
+// The dominant readout — SERVE by default, or whatever currentSpotlightPick
+// ranks most urgent once the timer's running. Color signals role (gold =
+// cooking now, cyan = counting to a future event); critical (red) reflects
+// whichever number is actually on screen, not a hidden global condition.
+function renderSpotlight(pick){
+  const spotlightEl = document.getElementById('spotlight');
+  const kickerText = document.getElementById('spotKickerText');
+  const dotEl = document.getElementById('spotDot');
+  const dishEl = document.getElementById('spotDish');
+  const textEl = document.getElementById('spotText');
+  const clockEl = document.getElementById('masterClock');
+  if(!spotlightEl || !clockEl) return;
+
+  let kind, secs, kicker, dishName, text;
+  if(pick){
+    kind = pick.kind;
+    secs = pick.secs;
+    dishName = pick.dish.name;
+    text = pick.text;
+    kicker = kind === 'active' ? 'DO THIS NOW' : 'UP NEXT';
+  } else {
+    kind = 'serve';
+    secs = running ? remaining : totalSeconds;
+    dishName = '';
+    text = '';
+    kicker = running ? 'HOLD — COUNTING TO SERVE' : 'SERVE COUNTDOWN';
+  }
+
+  kickerText.textContent = kicker;
+  dishEl.style.display = dishName ? '' : 'none';
+  dishEl.textContent = dishName;
+  textEl.style.display = text ? '' : 'none';
+  textEl.textContent = text;
+  clockEl.textContent = fmt(secs);
+
+  const isCritical = secs <= (kind === 'serve' ? 30 : 10);
+  spotlightEl.classList.toggle('is-active', kind === 'active' && !isCritical);
+  spotlightEl.classList.toggle('is-cool', kind !== 'active' && !isCritical);
+  spotlightEl.classList.toggle('is-critical', isCritical);
+  clockEl.classList.toggle('critical', isCritical);
+  dotEl.classList.toggle('is-active', kind === 'active');
+}
+
+// The always-visible summary row — SERVE plus every dish never disappears,
+// spotlighting only demotes visual weight. Each dish's own remaining cook
+// time here is a different number from whatever step-level countdown the
+// spotlight shows, not a repeat of it.
+function renderChipStrip(elapsed, pick){
+  const el = document.getElementById('chipStrip');
+  if(!el) return;
+  const serveSecs = running ? remaining : totalSeconds;
+  const serveCls = running ? 'is-live' : '';
+  const serveSpot = !pick ? ' is-spotlit' : '';
+  let html = `<div class="chip ${serveCls}${serveSpot}"><span class="chip-dot"></span><span class="chip-label">SERVE</span><span class="chip-num">${fmt(serveSecs)}</span></div>`;
+
+  const sorted = [...dishes].sort((a,b)=>b.mins-a.mins);
+  html += sorted.map(d=>{
+    const dur = d.mins*60;
+    const startOffset = Math.max(0, totalSeconds - dur);
+    let cls, val;
+    if(!running){
+      cls = ''; val = fmt(dur);
+    } else if(elapsed < startOffset){
+      cls = 'is-live'; val = fmt(startOffset - elapsed);
+    } else if(elapsed < totalSeconds){
+      cls = 'is-active'; val = fmt(dur - (elapsed - startOffset));
+    } else {
+      cls = 'is-done'; val = 'DONE';
+    }
+    const spot = (pick && pick.dish.id === d.id) ? ' is-spotlit' : '';
+    const shortName = d.name.split(' ').slice(0,2).join(' ');
+    return `<div class="chip ${cls}${spot}"><span class="chip-dot"></span><span class="chip-label">${shortName}</span><span class="chip-num">${val}</span></div>`;
+  }).join('');
+
+  el.innerHTML = html;
+}
+
+function renderSpotlightAndChips(elapsed){
+  const pick = currentSpotlightPick(elapsed);
+  renderSpotlight(pick);
+  renderChipStrip(elapsed, pick);
+}
+
 function tick(){
   remaining -= 1;
   const elapsed = totalSeconds - remaining;
 
-  const mc = document.getElementById('masterClock');
-  mc.textContent = fmt(remaining);
   document.getElementById('masterBar').style.width = (100*elapsed/totalSeconds)+'%';
   renderTicker(elapsed);
+  renderSpotlightAndChips(elapsed);
   checkVoiceCues(elapsed);
-
-  if(remaining <= 30 && remaining > 0){
-    mc.classList.add('critical');
-  }
 
   dishes.forEach(d=>{
     const dur = d.mins*60;
@@ -448,9 +554,9 @@ function start(){
   // originate from this click; the recurring tick()-triggered cues that
   // follow are then allowed for the rest of the session.
   playCueQueue(['sequence-engaged']);
-  document.getElementById('masterClock').classList.remove('critical');
   renderTracks();
   renderTicker(0);
+  renderSpotlightAndChips(0);
   document.getElementById('tickerPanel').classList.add('expanded');
   document.getElementById('tickerCaption').textContent = '— sequence live';
   document.getElementById('engageBtn').disabled = true;
@@ -476,12 +582,11 @@ function stop(){
 function reset(){
   stop();
   remaining = totalSeconds;
-  document.getElementById('masterClock').classList.remove('critical');
-  document.getElementById('masterClock').textContent = fmt(totalSeconds);
   document.getElementById('masterBar').style.width = '0%';
   document.getElementById('masterSub').textContent = 'STANDBY — SET DISHES AND ENGAGE';
   renderTracks();
   renderTicker(0);
+  renderSpotlightAndChips(0);
   document.getElementById('tickerPanel').classList.remove('expanded');
   document.getElementById('tickerCaption').textContent = '— tap to view';
 }
@@ -564,18 +669,19 @@ document.getElementById('addDishBtn').addEventListener('click', ()=>{
   nameInput.value=''; minsInput.value=''; ingInput.value=''; instrInput.value='';
   renderTracks();
   renderTicker(0);
+  renderSpotlightAndChips(0);
 });
 function setTimeframe(mins){
   mins = Math.max(1, mins);
   totalSeconds = mins*60;
   remaining = totalSeconds;
   document.getElementById('totalMins').value = mins;
-  document.getElementById('masterClock').textContent = fmt(totalSeconds);
   document.querySelectorAll('.preset-btn').forEach(b=>{
     b.classList.toggle('active-preset', parseInt(b.dataset.preset) === mins);
   });
   renderTracks();
   renderTicker(0);
+  renderSpotlightAndChips(0);
 }
 
 document.getElementById('totalMins').addEventListener('change', (e)=>{
@@ -795,5 +901,5 @@ if(SpeechRecognitionCtor){
 })();
 
 renderTracks();
-document.getElementById('masterClock').textContent = fmt(totalSeconds);
 renderTicker(0);
+renderSpotlightAndChips(0);
