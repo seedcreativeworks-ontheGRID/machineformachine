@@ -634,18 +634,24 @@ document.getElementById('closeRationaleBtn').addEventListener('click', ()=>{
   window.scrollTo(0,0);
 });
 document.getElementById('resetBtn').addEventListener('click', reset);
-// Tapping anywhere on the LIVE TASKS bar toggles it open/closed — header,
-// hero block, or step rows all count. The one exception is the per-step
-// check-off control, which owns its own tap (see below) and stops the
-// tap from also toggling the panel.
+// Tapping anywhere on the LIVE TASKS bar toggles it open/closed — header
+// or hero block both count. The one exception is a step row in the FULL
+// SEQUENCE list, which owns its own tap (see below, toggles that step's
+// checkbox from anywhere along the row) and stops the tap from also
+// toggling the panel.
 document.getElementById('tickerPanel').addEventListener('click', (e)=>{
-  if(e.target.closest('.ticker-check')) return;
+  if(e.target.closest('.ticker-steps li')) return;
   document.getElementById('tickerPanel').classList.toggle('expanded');
 });
 document.getElementById('tickerList').addEventListener('click', (e)=>{
-  const check = e.target.closest('.ticker-check');
-  if(!check) return;
+  // A tap anywhere along the row — the checkbox glyph, the step text, or
+  // the duration/countdown on the right — toggles that step, not just the
+  // small glyph itself (a wider, easier target beats a precise one here).
+  const row = e.target.closest('.ticker-steps li');
+  if(!row) return;
   e.stopPropagation();
+  const check = row.querySelector('.ticker-check');
+  if(!check) return;
   const id = parseInt(check.dataset.dishId);
   const i = parseInt(check.dataset.stepIndex);
   const dish = dishes.find(d=>d.id===id);
